@@ -10,7 +10,7 @@ cModel Technology
 Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
 vkey_sl
 Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
-Z2 !s110 1793642735
+Z2 !s110 1793645605
 !i10b 1
 !s100 jK]n_L02zYNl2Iiokn6zC0
 I=@JMMizglT>hGkbOVClfD0
@@ -18,154 +18,177 @@ Z3 V`JN@9S9cnhjKRR_L]QIcM3
 !s105 key_sl_v_unit
 S1
 R0
-Z4 w1793642670
+w1793642670
 8rtl_custom/key_sl.v
 Frtl_custom/key_sl.v
 L0 5
-Z5 OV;L;10.3c;59
+Z4 OV;L;10.3c;59
 r1
 !s85 0
 31
-Z6 !s108 1793642735.664000
-Z7 !s107 sim/tb_ui_menu.sv|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|
-Z8 !s90 -sv|-work|sim/build/menu/work|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|sim/tb_ui_menu.sv|
+Z5 !s108 1793645605.404000
+Z6 !s107 sim/tb_ui_menu.sv|sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_font_rom.v|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|
+Z7 !s90 -sv|-work|sim/build/menu/work|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|rtl_custom/menu_font_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|sim/tb_ui_menu.sv|
 !i113 1
-Z9 o-sv -work sim/build/menu/work
+Z8 o-sv -work sim/build/menu/work
 vmenu_bar_2px
 R1
-Z10 !s110 1793642748
+Z9 !s110 1793646733
 !i10b 1
-!s100 lTBA8YAkLD=>lO3SO<W]A1
-I9Mag;hPYf3HA9Y=o[OG0=3
+!s100 3SHKmjECfz1H0@IUh=5mJ3
+Io4m@:gbhhXcCNz2_J<QVZ0
 R3
 !s105 menu_bar_2px_v_unit
 S1
 R0
-w1793642691
+w1793646360
 8rtl_custom/menu_bar_2px.v
 Frtl_custom/menu_bar_2px.v
 L0 7
-R5
+R4
 r1
 !s85 0
 31
-Z11 !s108 1793642748.797000
-Z12 !s107 sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_font_rom.v|
-Z13 !s90 -sv|-work|sim/build/menu/work|rtl_custom/menu_font_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|
+Z10 !s108 1793646733.545000
+Z11 !s107 sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_font_rom.v|rtl/simple_dual_port_ram.v|
+Z12 !s90 -sv|-work|sim/build/menu/work|rtl/simple_dual_port_ram.v|rtl_custom/menu_font_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|
 !i113 1
-R9
+R8
 vmenu_font_rom
 R1
-R10
+R9
 !i10b 1
-!s100 mlWV8QoM8AS;T3FY;4D5g0
-I9EMM4HT0T^UiAWZk?7DNA2
+!s100 lbOdgdQZ@oga[`o>^cVeF1
+IaKSX:KSX6VDgFgmnazf]^2
 R3
 !s105 menu_font_rom_v_unit
 S1
 R0
-Z14 w1793642647
+Z13 w1793646722
 8rtl_custom/menu_font_rom.v
 Frtl_custom/menu_font_rom.v
-L0 3
-R5
+L0 4
+R4
 r1
 !s85 0
 31
+R10
 R11
 R12
-R13
 !i113 1
-R9
+R8
 vmenu_text_rom
 R1
-R10
+R9
 !i10b 1
-!s100 kNAOnAcDW@oVaa>a?J>=^2
-Iz=VmLIc;H9zHQ1QMbhV_K1
+!s100 IlRV26@flVQjHS6;@:`A@2
+I1:8CWJ:oFPM7N<0ihWmcP0
 R3
 !s105 menu_text_rom_v_unit
 S1
 R0
-R14
+R13
 8rtl_custom/menu_text_rom.v
 Frtl_custom/menu_text_rom.v
 L0 4
-R5
+R4
 r1
 !s85 0
 31
+R10
 R11
 R12
-R13
 !i113 1
+R8
+vsimple_dual_port_ram
+R1
 R9
+!i10b 1
+!s100 OHe`Q9JO;oR02Z>B]J5V`1
+I4ID;_]>LVB9jI1BH=8cgn3
+R3
+!s105 simple_dual_port_ram_v_unit
+S1
+R0
+w1778135257
+8rtl/simple_dual_port_ram.v
+Frtl/simple_dual_port_ram.v
+L0 14
+R4
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 1
+R8
 vtb_menu_bar
 R1
-R10
+R9
 !i10b 1
-!s100 R[K83LT0dHfaONE>bTTgD2
-I1d16n?Rki4jI2^=67hIaQ3
+!s100 i8cI:5123SK>_A326z6[:0
+IBjLec4VHZLmDzlE??D_891
 R3
 !s105 tb_menu_bar_sv_unit
 S1
 R0
-w1793642748
+Z14 w1793645605
 8sim/tb_menu_bar.sv
 Fsim/tb_menu_bar.sv
 L0 2
-R5
+R4
 r1
 !s85 0
 31
+R10
 R11
 R12
-R13
 !i113 1
-R9
+R8
 vtb_ui_menu
 R1
 R2
 !i10b 1
-!s100 ?Lzd<XAHa]=5G;kMP[9im1
-IhUgTGiFZY^nH8]JEad[?c0
+!s100 ^LUQf>D5ogRlReKJnVNIT0
+ITb_9WZRG[J3m8H4gR^jmf0
 R3
 !s105 tb_ui_menu_sv_unit
 S1
 R0
-w1793642735
+R14
 8sim/tb_ui_menu.sv
 Fsim/tb_ui_menu.sv
 L0 3
-R5
+R4
 r1
 !s85 0
 31
+R5
 R6
 R7
-R8
 !i113 1
-R9
+R8
 vui_ctrl
 R1
 R2
 !i10b 1
-!s100 >G?z5AfLIG<cT1NR93iRK0
-I]L8FcFbQzag53KAFAAOY72
+!s100 OPnP?n3=QF5?l<=CEJnKY3
+IiN1kR2HLC`]odPWB;UT]X2
 R3
 !s105 ui_ctrl_v_unit
 S1
 R0
-R4
+w1793645593
 8rtl_custom/ui_ctrl.v
 Frtl_custom/ui_ctrl.v
 L0 12
-R5
+R4
 r1
 !s85 0
 31
+R5
 R6
 R7
-R8
 !i113 1
-R9
+R8

@@ -864,7 +864,7 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
 end
 
 wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
-wire       ui_shape_on, ui_med_on;
+wire       ui_shape_on, ui_algo_canny;
 wire [1:0] ui_disp_mode;
 ui_ctrl u_ui_ctrl (
     .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
@@ -872,7 +872,7 @@ ui_ctrl u_ui_ctrl (
     .saved_valid(saved_valid_sync),
     .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
     .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
-    .shape_on(ui_shape_on), .med_on(ui_med_on), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
+    .shape_on(ui_shape_on), .algo_canny(ui_algo_canny), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
 
 // apply key changes only at the start of a frame
@@ -920,69 +920,29 @@ median_switch_2px #(
     .in_hs     (gray_hs),
     .in_vs     (gray_vs),
     .in_gray2  (gray2),
-    .en        (ui_med_on),
+    .en        (1'b1),
     .out_valid (medg_valid),
     .out_hs    (medg_hs),
     .out_vs    (medg_vs),
     .out_gray2 (medg2)
 );
 
-wire [71:0] win0, win1;
-wire        line_valid, line_hs, line_vs;
+// Sobel / Canny edge stage (Gaussian -> window -> Sobel -> {threshold | NMS -> double threshold + linking})
+wire edge0, edge1;
+wire edge_valid, edge_hs, edge_vs;
 
-line_buffer_3x3_2px #(
-    .PAIR_COUNT (960),
-    .MAX_LINES  (1080)
-) u_line_buffer_3x3_2px (
+edge_algo_2px #(
+    .PAIR_COUNT  (960),
+    .MAX_LINES   (1080),
+    .LINE_CYCLES (1100)
+) u_edge_algo_2px (
     .clk       (vid_clk_dvi2),
     .rst_n     (vid_rst_n),
     .in_valid  (medg_valid),
     .in_hs     (medg_hs),
     .in_vs     (medg_vs),
     .in_gray2  (medg2),
-    .out_valid (line_valid),
-    .out_hs    (line_hs),
-    .out_vs    (line_vs),
-    .win0      (win0),
-    .win1      (win1)
-);
-
-wire [11:0] sobel0, sobel1;
-wire       sobel_valid, sobel_hs, sobel_vs;
-
-sobel3x3_2px u_sobel3x3_2px (
-    .clk       (vid_clk_dvi2),
-    .rst_n     (vid_rst_n),
-    .in_valid  (line_valid),
-    .in_hs     (line_hs),
-    .in_vs     (line_vs),
-    .win0      (win0),
-    .win1      (win1),
-    .out_valid (sobel_valid),
-    .out_hs    (sobel_hs),
-    .out_vs    (sobel_vs),
-    .mag0      (),
-    .mag1      (),
-    .magnitude0(sobel0),
-    .magnitude1(sobel1),
-    .direction0(),
-    .direction1()
-);
-
-wire edge0, edge1;
-wire edge_valid, edge_hs, edge_vs;
-
-threshold_compare #(
-    .PAIR_COUNT  (960),
-    .BLANK_PAIRS (2)
-) u_threshold_compare (
-    .clk       (vid_clk_dvi2),
-    .rst_n     (vid_rst_n),
-    .in_valid  (sobel_valid),
-    .in_hs     (sobel_hs),
-    .in_vs     (sobel_vs),
-    .mag0      (sobel0),
-    .mag1      (sobel1),
+    .algo      (ui_algo_canny),
     .threshold (disp_threshold),
     .out_valid (edge_valid),
     .out_hs    (edge_hs),
@@ -1078,7 +1038,7 @@ wire [47:0] bar_rgb2;
 menu_bar_2px #(.BAR_Y(960)) u_menu_bar (.clk(vid_clk_dvi2), .rst_n(vid_rst_n),
     .in_valid(shp_valid), .in_hs(shp_hs), .in_vs(shp_vs), .in_rgb2(shp_rgb2),
     .sel(ui_sel), .src_mode(ui_src_mode), .thr_idx(ui_thr_idx), .flash(ui_flash),
-    .shape_on(ui_shape_on), .med_on(ui_med_on), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
+    .shape_on(ui_shape_on), .algo_canny(ui_algo_canny), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
     .out_valid(bar_valid), .out_hs(bar_hs), .out_vs(bar_vs), .out_rgb2(bar_rgb2));
 
 mode_overlay_2px #(

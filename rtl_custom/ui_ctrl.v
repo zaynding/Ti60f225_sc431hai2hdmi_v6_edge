@@ -21,7 +21,7 @@ module ui_ctrl #(
     output reg  [2:0] sel,
     output reg  [2:0] thr_idx,
     output reg  [11:0] thr12,
-    output reg        shape_on, med_on,
+    output reg        shape_on, algo_canny,
     output reg  [1:0] disp_mode,
     output reg  [2:0] src_mode,
     output reg  [2:0] flash
@@ -67,7 +67,7 @@ wire cap_req = k0_l || (k3_s && sel == 3'd1);
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        snapshot_toggle<=0; sel<=0; thr_idx<=0; shape_on<=1; med_on<=1; disp_mode<=0; src_mode<=0; flash<=0;
+        snapshot_toggle<=0; sel<=0; thr_idx<=0; shape_on<=1; algo_canny<=1; disp_mode<=0; src_mode<=0; flash<=0;
         rot_idx<=0; rot_cnt<=0; flash_cnt<=0; valid_d<=0;
     end else begin
         valid_d <= saved_valid;
@@ -80,14 +80,14 @@ always @(posedge clk or negedge rst_n) begin
         if (k3_s) case (sel)
             3'd0: src_mode  <= next_src(src_mode, saved_valid);
             3'd2: shape_on  <= ~shape_on;
-            3'd3: med_on    <= ~med_on;
+            3'd3: algo_canny <= ~algo_canny;
             3'd4: disp_mode <= (disp_mode == 2'd2) ? 2'd0 : disp_mode + 1'b1;
             default: begin end
         endcase
         if (k3_l) case (sel)
             3'd0: src_mode <= 3'd0;
             3'd2: shape_on <= 1'b1;
-            3'd3: med_on   <= 1'b1;
+            3'd3: algo_canny <= 1'b1;
             3'd4: disp_mode <= 2'd0;
             default: begin end
         endcase

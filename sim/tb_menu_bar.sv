@@ -4,7 +4,7 @@ reg clk=0, rst_n=0; always #6.734 clk=~clk;
 reg v=0,h=0,s=0; reg [47:0] d=48'h808080808080;
 wire ov,oh,os; wire [47:0] od;
 menu_bar_2px dut(.clk(clk),.rst_n(rst_n),.in_valid(v),.in_hs(h),.in_vs(s),.in_rgb2(d),.sel(3'd2),.src_mode(3'd6),.thr_idx(3'd2),.flash(3'd2),
-    .shape_on(1'b1),.med_on(1'b0),.disp_mode(2'd2),.saved_valid(4'b0101),.out_valid(ov),.out_hs(oh),.out_vs(os),.out_rgb2(od));
+    .shape_on(1'b1),.algo_canny(1'b1),.disp_mode(2'd2),.saved_valid(4'b0101),.out_valid(ov),.out_hs(oh),.out_vs(os),.out_rgb2(od));
 integer line, clkn, fd, ly=0, started=0;
 reg ov_d=0;
 always @(posedge clk) begin

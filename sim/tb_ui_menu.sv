@@ -12,7 +12,7 @@ reg [3:0] valid = 4'b0000;
 wire freeze, snap, shape_on, med_on; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
 ui_ctrl #(.ROT_CYCLES(300)) u_ui (.clk(clk), .rst_n(rst_n), .k0_s(sp[0]), .k0_l(lp[0]), .k1_s(sp[1]), .k1_l(lp[1]), .k2_s(sp[2]), .k2_l(lp[2]),
     .k3_s(sp[3]), .k3_l(lp[3]), .saved_valid(valid), .freeze(freeze), .view_mode(view), .snapshot_toggle(snap), .sel(sel), .thr_idx(thr),
-    .thr12(thr12), .shape_on(shape_on), .med_on(med_on), .disp_mode(disp), .src_mode(src), .flash(flash));
+    .thr12(thr12), .shape_on(shape_on), .algo_canny(med_on), .disp_mode(disp), .src_mode(src), .flash(flash));
 task press(input integer k, input integer len);
     begin key_n[k] = 0; repeat(len) @(negedge clk); key_n[k] = 1; repeat(60) @(negedge clk); end
 endtask
