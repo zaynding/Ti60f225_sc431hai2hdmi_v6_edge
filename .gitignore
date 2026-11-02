@@ -1,0 +1,25 @@
+# 忽略 Efinity 编译输出与工作目录
+outflow/
+outflow*/
+work_*/
+
+# 忽略仿真生成的临时文件与日志
+xsim.dir/
+*.log
+*.pb
+*.jou
+*.wlf
+*.gtkw
+*.vcd
+
+# 忽略 bit 编译生成文件（可按需只保留最终 bit）
+*.bit
+*.bin
+*.hex
+*.bsd
+
+# 忽略系统与编辑器缓存
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
