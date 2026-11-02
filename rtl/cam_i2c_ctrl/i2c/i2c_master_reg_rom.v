@@ -195,9 +195,10 @@ ROM[8'h6f] = {16'h393b,8'h00,1'b0};
 ROM[8'h70] = {16'h393c,8'h00,1'b0};
 ROM[8'h71] = {16'h393d,8'h02,1'b0};
 ROM[8'h72] = {16'h393e,8'h80,1'b0};
-ROM[8'h73] = {16'h3e00,8'h01,1'b0};//00
-ROM[8'h74] = {16'h3e01,8'hbb,1'b0};//ba
-ROM[8'h75] = {16'h3e02,8'hf0,1'b0};//d0
+// Final fixed exposure: 0x1BBF -> 0x0DDF half-line units (~1/2 exposure); keep WB and analog gain.
+ROM[8'h73] = {16'h3e00,8'h00,1'b0};
+ROM[8'h74] = {16'h3e01,8'hdd,1'b0};
+ROM[8'h75] = {16'h3e02,8'hf0,1'b0};
 ROM[8'h76] = {16'h3e16,8'h00,1'b0};
 ROM[8'h77] = {16'h3e17,8'hc5,1'b0};
 ROM[8'h78] = {16'h3e18,8'h00,1'b0};

@@ -1,6 +1,6 @@
 param([string]$Flow = 'compile',
-      [string]$OutputDir = 'outflow_v7',
-      [string]$WorkDir = 'work_v7',
+      [string]$OutputDir = 'outflow_exposure_half',
+      [string]$WorkDir = 'work_exposure_half',
       [string]$ProjectName = 'ti60f225_oob',
       [switch]$Help)
 Set-Location $PSScriptRoot
