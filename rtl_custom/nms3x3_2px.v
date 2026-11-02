@@ -9,6 +9,7 @@ module nms3x3_2px #(
     input wire in_valid, in_hs, in_vs,
     input wire [11:0] in_mag0, in_mag1,
     input wire [1:0] in_dir0, in_dir1,
+    input wire en,                 // 0 = pass the centre magnitude (same latency)
     output reg out_valid, out_hs, out_vs,
     output reg [11:0] out_mag0, out_mag1,
     output reg [1:0] out_dir0, out_dir1
@@ -47,8 +48,8 @@ always @(posedge clk or negedge rst_n) begin
         out_dir0 <= 0; out_dir1 <= 0;
     end else begin
         out_valid <= valid; out_hs <= hs; out_vs <= vs;
-        out_mag0 <= suppress(win0);
-        out_mag1 <= suppress(win1);
+        out_mag0 <= en ? suppress(win0) : win0[4*14 +: 12];
+        out_mag1 <= en ? suppress(win1) : win1[4*14 +: 12];
         out_dir0 <= win0[4*14+12 +: 2];
         out_dir1 <= win1[4*14+12 +: 2];
     end

@@ -10,15 +10,15 @@ cModel Technology
 Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
 vedge_algo_2px
 Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
-Z2 !s110 1793645572
+Z2 !s110 1793647703
 !i10b 1
-!s100 b3W3oa2W3CRDHMXlfIojT2
-IZN^YIZ?F0dMYVkYF`CoKe0
+!s100 okcX=S8TSYf890oeK[U?M0
+IdQNPSU>z8cJLfbY]SKR373
 Z3 V`JN@9S9cnhjKRR_L]QIcM3
 !s105 edge_algo_2px_v_unit
 S1
 R0
-Z4 w1793645554
+Z4 w1793647689
 8rtl_custom/edge_algo_2px.v
 Frtl_custom/edge_algo_2px.v
 L0 13
@@ -26,17 +26,17 @@ Z5 OV;L;10.3c;59
 r1
 !s85 0
 31
-Z6 !s108 1793645572.584000
-Z7 !s107 sim/tb_edge_algo.sv|rtl_custom/edge_algo_2px.v|rtl_custom/edge_link_2px.v|rtl_custom/nms3x3_2px.v|rtl_custom/threshold_compare.v|rtl_custom/sobel3x3_2px.v|rtl_custom/gaussian3x3_2px.v|rtl_custom/line_buffer_3x3_2px_p.v|rtl_custom/line_buffer_3x3_2px.v|rtl/simple_dual_port_ram.v|
-Z8 !s90 -sv|-work|sim/build/algo/work|rtl/simple_dual_port_ram.v|rtl_custom/line_buffer_3x3_2px.v|rtl_custom/line_buffer_3x3_2px_p.v|rtl_custom/gaussian3x3_2px.v|rtl_custom/sobel3x3_2px.v|rtl_custom/threshold_compare.v|rtl_custom/nms3x3_2px.v|rtl_custom/edge_link_2px.v|rtl_custom/edge_algo_2px.v|sim/tb_edge_algo.sv|
+Z6 !s108 1793647703.795000
+Z7 !s107 sim/tb_edge_algo.sv|rtl_custom/edge_algo_2px.v|rtl_custom/edge_link_2px.v|rtl_custom/nms3x3_2px.v|rtl_custom/sobel3x3_2px.v|rtl_custom/gaussian3x3_2px.v|rtl_custom/line_buffer_3x3_2px_p.v|rtl_custom/line_buffer_3x3_2px.v|rtl/simple_dual_port_ram.v|
+Z8 !s90 -sv|-work|sim/build/algo/work|rtl/simple_dual_port_ram.v|rtl_custom/line_buffer_3x3_2px.v|rtl_custom/line_buffer_3x3_2px_p.v|rtl_custom/gaussian3x3_2px.v|rtl_custom/sobel3x3_2px.v|rtl_custom/nms3x3_2px.v|rtl_custom/edge_link_2px.v|rtl_custom/edge_algo_2px.v|sim/tb_edge_algo.sv|
 !i113 1
 Z9 o-sv -work sim/build/algo/work
 vedge_link_2px
 R1
 R2
 !i10b 1
-!s100 kl0EIN?NPY1M<HfM5URF=2
-IzPFeoaVR3m]Sa9[Ko0<hn1
+!s100 a2d>:CLjC=6fY1O6oga`]2
+Id52j2NIh2ja@G>TKE8>LV1
 R3
 !s105 edge_link_2px_v_unit
 S1
@@ -58,8 +58,8 @@ vgaussian3x3_2px
 R1
 R2
 !i10b 1
-!s100 V:C<i38CNk@G@OD]^Qo0g0
-IXFKdho^mUPdO8l]caIdn02
+!s100 B0[4ocin0M6I[UzDCPA8h1
+Ia89oKj>oB0Az2]fi;JPTR2
 R3
 !s105 gaussian3x3_2px_v_unit
 S1
@@ -110,7 +110,7 @@ R3
 !s105 line_buffer_3x3_2px_p_v_unit
 S1
 R0
-R4
+w1793645554
 8rtl_custom/line_buffer_3x3_2px_p.v
 Frtl_custom/line_buffer_3x3_2px_p.v
 L0 3
@@ -127,8 +127,8 @@ vnms3x3_2px
 R1
 R2
 !i10b 1
-!s100 5S78Z1[P2nVTXMCO<emJD2
-IRm<EIK3Om3<5DJFObRGoN1
+!s100 Elni]1>;EaYD<3L2WmjGC2
+Ih9H336_K<CZFbS;E[L@0`2
 R3
 !s105 nms3x3_2px_v_unit
 S1
@@ -219,39 +219,16 @@ vtb_edge_algo
 R1
 R2
 !i10b 1
-!s100 DJj[dhK_<lBnD]z:0dX1R0
-Iohm0?o]l5be3fm=MlWWjZ1
+!s100 XU]Em=Pf:i1Fd2VIZE4P>1
+IkM4gBCLnBz8JWV>g64e7O3
 R3
 !s105 tb_edge_algo_sv_unit
 S1
 R0
-w1793645571
+w1793647703
 8sim/tb_edge_algo.sv
 Fsim/tb_edge_algo.sv
 L0 2
-R5
-r1
-!s85 0
-31
-R6
-R7
-R8
-!i113 1
-R9
-vthreshold_compare
-R1
-R2
-!i10b 1
-!s100 R2>4Dk6EZF[ci<4<>>cXD3
-I_UIL;FZXf1KJ?zHee=47E1
-R3
-!s105 threshold_compare_v_unit
-S1
-R0
-R11
-8rtl_custom/threshold_compare.v
-Frtl_custom/threshold_compare.v
-L0 3
 R5
 r1
 !s85 0

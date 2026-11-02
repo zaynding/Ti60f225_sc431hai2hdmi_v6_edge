@@ -1,13 +1,29 @@
-# vsim -c -lib sim/build/menu/work tb_menu_bar -do "run -all; quit -f" 
-# Start time: 04:12:14 on Nov 03,2026
+# vsim -c -lib sim/build/algo/work tb_edge_algo -do "run -all; quit -f" 
+# Start time: 04:28:24 on Nov 03,2026
 # Loading sv_std.std
-# Loading sim/build/menu/work.tb_menu_bar
-# Loading sim/build/menu/work.menu_bar_2px
-# Loading sim/build/menu/work.menu_text_rom
-# Loading sim/build/menu/work.menu_font_rom
-# Loading sim/build/menu/work.simple_dual_port_ram
+# Loading sim/build/algo/work.tb_edge_algo
+# Loading sim/build/algo/work.edge_algo_2px
+# Loading sim/build/algo/work.gaussian3x3_2px
+# Loading sim/build/algo/work.line_buffer_3x3_2px_p
+# Loading sim/build/algo/work.simple_dual_port_ram
+# Loading sim/build/algo/work.line_buffer_3x3_2px
+# Loading sim/build/algo/work.sobel3x3_2px
+# Loading sim/build/algo/work.sobel3x3_lane
+# Loading sim/build/algo/work.nms3x3_2px
+# Loading sim/build/algo/work.edge_link_2px
 # run -all
-# ** Note: $finish    : sim/tb_menu_bar.sv(27)
-#    Time: 16741128040 ps  Iteration: 1  Instance: /tb_menu_bar
-# End time: 04:12:20 on Nov 03,2026, Elapsed time: 0:00:06
+# frame 0: valid pairs 7900 lines 79 edge pixels 1869
+# frame 1: valid pairs 7900 lines 79 edge pixels 1869
+# frame 2: valid pairs 7900 lines 79 edge pixels 601
+# frame 3: valid pairs 7900 lines 79 edge pixels 601
+# frame 4: valid pairs 7900 lines 79 edge pixels 1869
+# frame 5: valid pairs 7900 lines 79 edge pixels 601
+# frame 1 vs period 132000000
+# frame 2 vs period 132000000
+# frame 3 vs period 132000000
+# frame 4 vs period 132000000
+# frame 5 vs period 132000000
+# ** Note: $finish    : sim/tb_edge_algo.sv(40)
+#    Time: 801700 ns  Iteration: 1  Instance: /tb_edge_algo
+# End time: 04:28:28 on Nov 03,2026, Elapsed time: 0:00:04
 # Errors: 0, Warnings: 0

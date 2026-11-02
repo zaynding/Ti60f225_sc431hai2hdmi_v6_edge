@@ -8,11 +8,11 @@ edge_algo_2px #(.PAIR_COUNT(PAIRS),.MAX_LINES(LINES),.LINE_CYCLES(LC)) dut(.clk(
     .algo(algo),.threshold(12'd160),.out_valid(ov),.out_hs(oh),.out_vs(os),.edge0(e0),.edge1(e1));
 reg [15:0] img[0:PAIRS*LINES-1];
 integer f,l,c, fd, outf=-1, outl=0, nvalid[0:NF], nedge[0:NF], nlines[0:NF];
-reg os_d=0, ov_d=0;
+reg os_d=0, ov_d=0; time vst[0:NF];
 initial begin for (f=0;f<=NF;f=f+1) begin nvalid[f]=0; nedge[f]=0; nlines[f]=0; end end
 always @(posedge clk) begin
     os_d<=os; ov_d<=ov;
-    if (os && !os_d) begin outf = outf + 1; end
+    if (os && !os_d) begin outf = outf + 1; if (outf < NF) vst[outf] = $time; end
     if (ov && outf>=0 && outf<NF) begin
         nvalid[outf] = nvalid[outf] + 1; nedge[outf] = nedge[outf] + e0 + e1;
         $fwrite(fd, "%0d %0d %0d\n", outf, e0, e1);
@@ -36,6 +36,7 @@ initial begin
     repeat(8*LC) @(negedge clk);
     $fclose(fd);
     for (f=0; f<NF; f=f+1) $display("frame %0d: valid pairs %0d lines %0d edge pixels %0d", f, nvalid[f], nlines[f], nedge[f]);
+    for (f=1; f<NF; f=f+1) $display("frame %0d vs period %0t", f, vst[f]-vst[f-1]);
     $finish;
 end
 endmodule

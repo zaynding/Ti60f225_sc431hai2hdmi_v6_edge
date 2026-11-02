@@ -1,0 +1,171 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
+vseq_div
+Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
+Z2 !s110 1793647124
+!i10b 1
+!s100 _GkVgH1USm3HH=Tm7caMP2
+IGhZJ9C^kjK;Fcgg4;_n]?3
+Z3 V`JN@9S9cnhjKRR_L]QIcM3
+Z4 !s105 shape_arith_v_unit
+S1
+R0
+Z5 w1793641931
+Z6 8rtl_custom/shape_arith.v
+Z7 Frtl_custom/shape_arith.v
+L0 31
+Z8 OV;L;10.3c;59
+r1
+!s85 0
+31
+Z9 !s108 1793647124.676000
+Z10 !s107 sim/tb_shape_chain.sv|rtl_custom/shape_ccl.v|rtl_custom/shape_pool.v|rtl_custom/shape_classify.v|rtl_custom/shape_arith.v|rtl/simple_dual_port_ram.v|
+Z11 !s90 -sv|-work|sim/build/shape/work|rtl/simple_dual_port_ram.v|rtl_custom/shape_arith.v|rtl_custom/shape_classify.v|rtl_custom/shape_pool.v|rtl_custom/shape_ccl.v|sim/tb_shape_chain.sv|
+!i113 1
+Z12 o-sv -work sim/build/shape/work
+vseq_mul
+R1
+R2
+!i10b 1
+!s100 BmmUnBC:XiRJnVb[H746N2
+IRVzo@GS0_=OC8>2a`[2d02
+R3
+R4
+S1
+R0
+R5
+R6
+R7
+L0 5
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_ccl
+R1
+R2
+!i10b 1
+!s100 kZH`7glZZcgEbVD?hIbGE1
+IV:i78eQmV7hZbPaOGYS3P2
+R3
+!s105 shape_ccl_v_unit
+S1
+R0
+Z13 w1793647103
+8rtl_custom/shape_ccl.v
+Frtl_custom/shape_ccl.v
+L0 13
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_classify
+R1
+R2
+!i10b 1
+!s100 i8ZBfCa>ZFmFOe?RdA@LK2
+IJ>eA86mUBANAbzQG<KW_z3
+R3
+!s105 shape_classify_v_unit
+S1
+R0
+R5
+8rtl_custom/shape_classify.v
+Frtl_custom/shape_classify.v
+L0 17
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_pool
+R1
+R2
+!i10b 1
+!s100 @`J@4]KEJDUO>na^^>hDQ2
+IZMBQD?d9;bOYOnVzk@lSi1
+R3
+!s105 shape_pool_v_unit
+S1
+R0
+R5
+8rtl_custom/shape_pool.v
+Frtl_custom/shape_pool.v
+L0 11
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vsimple_dual_port_ram
+R1
+R2
+!i10b 1
+!s100 OHe`Q9JO;oR02Z>B]J5V`1
+I]T0e:]EneCcaz4?3^9Afc2
+R3
+!s105 simple_dual_port_ram_v_unit
+S1
+R0
+w1778135257
+8rtl/simple_dual_port_ram.v
+Frtl/simple_dual_port_ram.v
+L0 14
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vtb_shape_chain
+R1
+R2
+!i10b 1
+!s100 RhS2iN:0M@KRhK8K3R:U33
+I0TzQ]NIC<9fN@:?AHX6Dn3
+R3
+!s105 tb_shape_chain_sv_unit
+S1
+R0
+R13
+8sim/tb_shape_chain.sv
+Fsim/tb_shape_chain.sv
+L0 3
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12

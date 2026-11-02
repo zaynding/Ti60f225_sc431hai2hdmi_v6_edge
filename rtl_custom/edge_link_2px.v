@@ -5,6 +5,7 @@ module edge_link_2px #(
     input wire clk,rst_n,in_valid,in_hs,in_vs,
     input wire [11:0] mag0,mag1,threshold,
     input wire [1:0] dir0,dir1,
+    input wire en,                 // 0 = plain single threshold (strong bit), same latency
     output reg out_valid,out_hs,out_vs,edge0,edge1
 );
 wire v,h,s;
@@ -27,6 +28,7 @@ function weak_line;
 endfunction
 function connected;
     input [35:0] w;
+    input en;
     reg neighbor,continuous;
     integer i;
     begin
@@ -38,18 +40,18 @@ function connected;
             2: continuous=weak_line(w[5*4 +:4],w[3*4 +:4],2);
             3: continuous=weak_line(w[8*4 +:4],w[0*4 +:4],3);
         endcase
-        connected=w[16] || (w[17] && (neighbor || continuous)) ||
+        connected=!en ? w[16] : (w[16] || (w[17] && (neighbor || continuous)) ||
             bridge(w[7*4 +:4],w[1*4 +:4],0) ||
             bridge(w[6*4 +:4],w[2*4 +:4],1) ||
             bridge(w[5*4 +:4],w[3*4 +:4],2) ||
-            bridge(w[8*4 +:4],w[0*4 +:4],3);
+            bridge(w[8*4 +:4],w[0*4 +:4],3));
     end
 endfunction
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin out_valid<=0; out_hs<=0; out_vs<=0; edge0<=0; edge1<=0; end
     else begin
         out_valid<=v; out_hs<=h; out_vs<=s;
-        edge0<=v && connected(w0); edge1<=v && connected(w1);
+        edge0<=v && connected(w0,en); edge1<=v && connected(w1,en);
     end
 end
 endmodule

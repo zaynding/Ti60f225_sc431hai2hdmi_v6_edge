@@ -5,6 +5,7 @@ module gaussian3x3_2px #(
 )(
     input wire clk,rst_n,in_valid,in_hs,in_vs,
     input wire [15:0] in_gray2,
+    input wire en,                 // 0 = pass the centre pixel (same latency)
     output reg out_valid,out_hs,out_vs,
     output reg [15:0] out_gray2
 );
@@ -28,5 +29,5 @@ function [7:0] smooth;
 endfunction
 always @(posedge clk or negedge rst_n)
     if(!rst_n) begin out_valid<=0; out_hs<=0; out_vs<=0; out_gray2<=0; end
-    else begin out_valid<=v; out_hs<=h; out_vs<=s; out_gray2<={smooth(w1),smooth(w0)}; end
+    else begin out_valid<=v; out_hs<=h; out_vs<=s; out_gray2<= en ? {smooth(w1),smooth(w0)} : {w1[39:32],w0[39:32]}; end
 endmodule

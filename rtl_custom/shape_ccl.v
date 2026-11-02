@@ -13,8 +13,9 @@
 module shape_ccl #(
     parameter integer MAP_W = 240,
     parameter integer MAP_H = 270,
-    parameter integer MMIN  = 120,
-    parameter integer MMAX  = 38880
+    parameter integer MMIN  = 600,
+    parameter integer MMAX  = 38880,
+    parameter integer BMIN  = 5400     // bounding-box area (4x4 cells) must be >= this (1/12 of the 240x270 crop)
 )(
     input  wire         clk, rst_n,
     input  wire         p_valid, p_bit, p_frame_start,
@@ -64,7 +65,7 @@ simple_dual_port_ram #(.DATA_WIDTH(196), .ADDR_WIDTH(5), .OUTPUT_REG("FALSE")) u
 
 // ---------------- row engine ----------------
 localparam S_IDLE=0, S_CLR=1, S_ROWINIT=2, S_FETCH=3, S_EVAL=4, S_FINDN=5, S_DEC=6, S_MRG1=7, S_MRG2=8, S_MRG3=9,
-           S_ACC=10, S_ADV=11, S_FL1=12, S_FL2=13, S_FL3=14, S_FL4=15, S_ER0=16, S_ER1=17, S_ER2=18, S_ER3=19;
+           S_ACC=10, S_ADV=11, S_FL1=12, S_FL2=13, S_FL3=14, S_FL4=15, S_ER0=16, S_ER1=17, S_ER2=18, S_ER3=19, S_ER4=20, S_ER5=21;
 reg [4:0] st;
 reg [4:0] after_flush;
 reg [8:0] y;
@@ -78,6 +79,8 @@ reg        run_touch;
 reg [195:0] sa;
 reg [15:0] p_sy;  reg [24:0] p_syy, p_sxy;
 reg [7:0]  clr_cnt;
+reg [195:0] er_rec;
+reg [7:0] bw;  reg [8:0] bh;  reg [16:0] bprod;
 
 wire bg = ~drow[0];
 wire border_pix = (x == 0) || (x == MAP_W-1) || (y == 0) || (y == MAP_H-1);
@@ -143,7 +146,7 @@ always @(posedge clk or negedge rst_n) begin
         lp_we<=0; lp_waddr<=0; lp_wdata<=0; st_we<=0; st_waddr<=0; st_wdata<=0; st_ra<=0; x<=0;
         st<=S_IDLE; after_flush<=S_ADV; y<=0; ysq<=0; drow<=0; run_lab<=0; t<=0; rn<=0; mb_a<=0; mb_b<=0; el<=0;
         run_cnt<=0; run_xmin<=0; run_xmax<=0; run_sx<=0; run_sxx<=0; run_touch<=0; sa<=0; p_sy<=0; p_syy<=0; p_sxy<=0;
-        clr_cnt<=0; fin_valid<=0; fin_rec<=0; frame_done<=0; ovf_count<=0; overrun_count<=0;
+        clr_cnt<=0; er_rec<=0; bw<=0; bh<=0; bprod<=0; fin_valid<=0; fin_rec<=0; frame_done<=0; ovf_count<=0; overrun_count<=0;
     end else begin
         lp_we <= 1'b0; st_we <= 1'b0; fin_valid <= 1'b0; frame_done <= 1'b0;
 
@@ -266,8 +269,15 @@ always @(posedge clk or negedge rst_n) begin
         end
         S_ER2: st<=S_ER3;
         S_ER3: begin
-            if (!st_q[P_T] && st_q[P_M +: W_M] >= MMIN && st_q[P_M +: W_M] <= MMAX) begin
-                fin_valid<=1'b1; fin_rec<=st_q;
+            er_rec <= st_q;
+            bw <= st_q[P_XMAX +: 8] - st_q[P_XMIN +: 8] + 8'd1;
+            bh <= st_q[P_YMAX +: 9] - st_q[P_YMIN +: 9] + 9'd1;
+            st <= S_ER4;
+        end
+        S_ER4: begin bprod <= bw * bh; st <= S_ER5; end
+        S_ER5: begin
+            if (!er_rec[P_T] && er_rec[P_M +: W_M] >= MMIN && er_rec[P_M +: W_M] <= MMAX && bprod >= BMIN) begin
+                fin_valid<=1'b1; fin_rec<=er_rec;
             end
             act[el]<=1'b0; el<=el+1'b1; st<=S_ER1;
         end

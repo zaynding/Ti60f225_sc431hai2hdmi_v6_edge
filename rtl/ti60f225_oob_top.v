@@ -1016,8 +1016,8 @@ wire        sp_valid, sp_bit, sp_fs;
 shape_pool u_shape_pool (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(desp_valid), .in_vs(desp_vs),
     .in_edge2(desp_edge2), .p_valid(sp_valid), .p_bit(sp_bit), .p_frame_start(sp_fs));
 wire        sf_valid, sf_done;  wire [195:0] sf_rec;  wire [15:0] sf_ovf, sf_overrun;
-// MMIN = 5400 cells = 1/12 of the 240x270 pooled crop: smaller regions are ignored
-shape_ccl #(.MMIN(5400)) u_shape_ccl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .p_valid(sp_valid), .p_bit(sp_bit),
+// shapes whose bounding box is smaller than 1/12 of the displayed crop (BMIN = 5400 of 64800 cells) are ignored
+shape_ccl #(.MMIN(600), .BMIN(5400)) u_shape_ccl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .p_valid(sp_valid), .p_bit(sp_bit),
     .p_frame_start(sp_fs), .fin_valid(sf_valid), .fin_rec(sf_rec), .frame_done(sf_done), .ovf_count(sf_ovf), .overrun_count(sf_overrun));
 wire        sc_valid;  wire [2:0] sc_class;  wire [7:0] sc_x0, sc_x1;  wire [8:0] sc_y0, sc_y1;  wire [31:0] sc_i1, sc_drop;  wire sc_el;
 shape_classify u_shape_cls (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(sf_valid), .in_rec(sf_rec), .out_valid(sc_valid),
