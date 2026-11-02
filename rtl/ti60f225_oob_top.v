@@ -611,9 +611,9 @@ wire [7:0]    ch0_b;
 wire ch0_vs;
 wire ch0_hs;
 wire ch0_de;
-wire frame_freeze = 1'b0;
-reg  [2:0] view_mode;
-reg        snapshot_toggle;
+wire frame_freeze;
+wire [2:0] view_mode;
+wire       snapshot_toggle;
 wire [3:0] saved_valid;
 // IMX219
   frame_buffer #(
@@ -839,20 +839,15 @@ debayer_top_2to1 debayer_top
 // custom image processing chain  (steps 1-4: gray -> 3x3 window -> sobel -> threshold)
 //   display source is FIXED to the despeckled binary edge (no runtime mode switching)
 //***************************************************************************
-wire [7:0]  edge_threshold_raw;  // from threshold_ctrl (8 bit)
-wire [11:0] edge_threshold_12 = {edge_threshold_raw, 3'b000};  // x8 -> 12-bit domain
+wire [11:0] edge_threshold_12;
 reg  [11:0] disp_threshold;     // latched at frame start (no tearing while pressing)
 
-// ---- keys: KEY1 = cycle threshold (more edges, then wrap),
-//            KEY2 = cycle L/1..4, KEY3 = capture live frame ----
-wire key1_press, key2_press, key3_press;
-
-key_debounce #(.DEBOUNCE_CYCLES(1485000)) u_key1 (
-    .clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[1]), .key_press(key1_press));
-key_debounce #(.DEBOUNCE_CYCLES(1485000)) u_key2 (
-    .clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[2]), .key_press(key2_press));
-key_debounce #(.DEBOUNCE_CYCLES(1485000)) u_key3 (
-    .clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[3]), .key_press(key3_press));
+// ---- four-key UI: K1 threshold, K2 select, K3 change/confirm, K0 freeze (short) / capture (long) ----
+wire k0_s, k0_l, k1_s, k1_l, k2_s, k2_l, k3_s, k3_l;
+key_sl u_k0 (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[0]), .short_p(k0_s), .long_p(k0_l));
+key_sl u_k1 (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[1]), .short_p(k1_s), .long_p(k1_l));
+key_sl u_k2 (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[2]), .short_p(k2_s), .long_p(k2_l));
+key_sl u_k3 (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .key_n(key_i[3]), .short_p(k3_s), .long_p(k3_l));
 
 // saved_valid is produced in the DDR/AXI clock domain. It changes only after
 // a complete frame, so a two-flop synchronizer is sufficient here.
@@ -868,49 +863,16 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
     end
 end
 
-// Start from LIVE and advance to the next valid saved frame. Invalid (not yet
-// captured) slots are skipped; after S4 the sequence returns to LIVE.
-function [2:0] next_view_mode;
-    input [2:0] current;
-    input [3:0] valid;
-    integer i;
-    reg found;
-begin
-    found = 1'b0;
-    next_view_mode = 3'd0;
-    for (i = 0; i < 4; i = i + 1) begin
-        if (!found && ((current == 3'd0) || (i >= current)) && valid[i]) begin
-            next_view_mode = i + 1;
-            found = 1'b1;
-        end
-    end
-end
-endfunction
-
-reg [2:0] next_mode;
-always @* begin
-    next_mode = next_view_mode(view_mode, saved_valid_sync);
-end
-
-always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
-    if (!vid_rst_n)
-        view_mode <= 3'd0;
-    else if (key2_press)
-        view_mode <= next_mode;
-end
-
-always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
-    if (!vid_rst_n)
-        snapshot_toggle <= 1'b0;
-    else if (key3_press)
-        snapshot_toggle <= ~snapshot_toggle;
-end
-
-threshold_ctrl u_threshold_ctrl (
-    .clk         (vid_clk_dvi2),
-    .rst_n       (vid_rst_n),
-    .cycle_press (key1_press),
-    .threshold   (edge_threshold_raw)
+wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
+wire       ui_shape_on, ui_med_on;
+wire [1:0] ui_disp_mode;
+ui_ctrl u_ui_ctrl (
+    .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
+    .k0_s(k0_s), .k0_l(k0_l), .k1_s(k1_s), .k1_l(k1_l), .k2_s(k2_s), .k2_l(k2_l), .k3_s(k3_s), .k3_l(k3_l),
+    .saved_valid(saved_valid_sync),
+    .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
+    .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
+    .shape_on(ui_shape_on), .med_on(ui_med_on), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
 
 // apply key changes only at the start of a frame
@@ -958,6 +920,7 @@ median_switch_2px #(
     .in_hs     (gray_hs),
     .in_vs     (gray_vs),
     .in_gray2  (gray2),
+    .en        (ui_med_on),
     .out_valid (medg_valid),
     .out_hs    (medg_hs),
     .out_vs    (medg_vs),
@@ -1064,6 +1027,9 @@ display_split_2px #(
 ) u_display_split_2px (
     .clk       (vid_clk_dvi2),
     .rst_n     (vid_rst_n),
+    .show_red  (ui_disp_mode != 2'd1),
+    .show_color(ui_disp_mode != 2'd2),
+    .show_edge (ui_disp_mode != 2'd1),
     .src_valid (rgb_de),
     .src_vs    (rgb_vs),
     .src_rgb2  (rgb_datax2),
@@ -1083,6 +1049,38 @@ wire        disp_de;
 wire        disp_hs;
 wire        disp_vs;
 
+// ---- shape recognition (circle / ellipse / square / rectangle / triangle), tapped from the despeckled edge map ----
+wire        shp_valid, shp_hs, shp_vs;
+wire [47:0] shp_rgb2;
+wire        sp_valid, sp_bit, sp_fs;
+shape_pool u_shape_pool (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(desp_valid), .in_vs(desp_vs),
+    .in_edge2(desp_edge2), .p_valid(sp_valid), .p_bit(sp_bit), .p_frame_start(sp_fs));
+wire        sf_valid, sf_done;  wire [195:0] sf_rec;  wire [15:0] sf_ovf, sf_overrun;
+// MMIN = 5400 cells = 1/12 of the 240x270 pooled crop: smaller regions are ignored
+shape_ccl #(.MMIN(5400)) u_shape_ccl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .p_valid(sp_valid), .p_bit(sp_bit),
+    .p_frame_start(sp_fs), .fin_valid(sf_valid), .fin_rec(sf_rec), .frame_done(sf_done), .ovf_count(sf_ovf), .overrun_count(sf_overrun));
+wire        sc_valid;  wire [2:0] sc_class;  wire [7:0] sc_x0, sc_x1;  wire [8:0] sc_y0, sc_y1;  wire [31:0] sc_i1, sc_drop;  wire sc_el;
+shape_classify u_shape_cls (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(sf_valid), .in_rec(sf_rec), .out_valid(sc_valid),
+    .out_class(sc_class), .out_xmin(sc_x0), .out_xmax(sc_x1), .out_ymin(sc_y0), .out_ymax(sc_y1), .out_i1(sc_i1),
+    .out_elong(sc_el), .drop_count(sc_drop));
+wire [3:0] st_vis;  wire [11:0] st_cls;  wire [31:0] st_x0, st_x1;  wire [35:0] st_y0, st_y1;
+shape_track #(.NT(4)) u_shape_trk (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .frame_start(sp_fs),
+    .det_valid(sc_valid && sc_class != 3'd0), .det_class(sc_class), .det_xmin(sc_x0), .det_xmax(sc_x1),
+    .det_ymin(sc_y0), .det_ymax(sc_y1), .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1),
+    .trk_ymin(st_y0), .trk_ymax(st_y1));
+shape_overlay_2px #(.NT(4), .PAIR_COUNT(960)) u_shape_ovl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on),
+    .in_valid(split_valid), .in_hs(split_hs), .in_vs(split_vs), .in_rgb2(split_rgb2),
+    .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1), .trk_ymin(st_y0), .trk_ymax(st_y1),
+    .out_valid(shp_valid), .out_hs(shp_hs), .out_vs(shp_vs), .out_rgb2(shp_rgb2));
+
+wire        bar_valid, bar_hs, bar_vs;
+wire [47:0] bar_rgb2;
+menu_bar_2px #(.BAR_Y(960)) u_menu_bar (.clk(vid_clk_dvi2), .rst_n(vid_rst_n),
+    .in_valid(shp_valid), .in_hs(shp_hs), .in_vs(shp_vs), .in_rgb2(shp_rgb2),
+    .sel(ui_sel), .src_mode(ui_src_mode), .thr_idx(ui_thr_idx), .flash(ui_flash),
+    .shape_on(ui_shape_on), .med_on(ui_med_on), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
+    .out_valid(bar_valid), .out_hs(bar_hs), .out_vs(bar_vs), .out_rgb2(bar_rgb2));
+
 mode_overlay_2px #(
     .PAIR_COUNT (960),
     .LINE_COUNT (1080),
@@ -1093,10 +1091,10 @@ mode_overlay_2px #(
 ) u_mode_overlay_2px (
     .clk       (vid_clk_dvi2),
     .rst_n     (vid_rst_n),
-    .in_valid  (split_valid),
-    .in_hs     (split_hs),
-    .in_vs     (split_vs),
-    .in_rgb2   (split_rgb2),
+    .in_valid  (bar_valid),
+    .in_hs     (bar_hs),
+    .in_vs     (bar_vs),
+    .in_rgb2   (bar_rgb2),
     .view_mode (view_mode),
     .out_valid (disp_de),
     .out_hs    (disp_hs),
@@ -1347,6 +1345,9 @@ assign tmds_tx_data0_TX_DATA = ~tmds_data0;
 assign tmds_tx_data1_TX_DATA = ~tmds_data1;
 assign tmds_tx_data2_TX_DATA = ~tmds_data2;
 
+// Debug (LA/VIO) core removed to save block RAM; set DEBUG_CORE=1 and restore the <efx:debugger> section to re-enable.
+localparam DEBUG_CORE = 0;
+generate if (DEBUG_CORE) begin : g_dbg
 debug_edb_top debug_edb_top_inst (
     .bscan_CAPTURE      ( jtag_inst1_CAPTURE  ),
     .bscan_DRCK         ( jtag_inst1_DRCK     ),
@@ -1371,5 +1372,8 @@ debug_edb_top debug_edb_top_inst (
     .la0_ch0_de         ( ch0_de              ),
     .la0_cal_done       ( cal_done            )
 );
+end else begin : g_nodbg
+    assign jtag_inst1_TDO = jtag_inst1_TDI ^ jtag_inst1_TCK ^ jtag_inst1_TMS ^ jtag_inst1_SEL ^ jtag_inst1_SHIFT ^ jtag_inst1_UPDATE ^ jtag_inst1_CAPTURE ^ jtag_inst1_DRCK ^ jtag_inst1_RESET ^ jtag_inst1_RUNTEST;
+end endgenerate
 
 endmodule

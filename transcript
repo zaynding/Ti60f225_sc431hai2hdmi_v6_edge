@@ -1,0 +1,12 @@
+# vsim -c -lib sim/build/menu/work tb_menu_bar -do "run -all; quit -f" 
+# Start time: 03:05:49 on Nov 03,2026
+# Loading sv_std.std
+# Loading sim/build/menu/work.tb_menu_bar
+# Loading sim/build/menu/work.menu_bar_2px
+# Loading sim/build/menu/work.menu_text_rom
+# Loading sim/build/menu/work.menu_font_rom
+# run -all
+# ** Note: $finish    : sim/tb_menu_bar.sv(27)
+#    Time: 16741128040 ps  Iteration: 1  Instance: /tb_menu_bar
+# End time: 03:05:56 on Nov 03,2026, Elapsed time: 0:00:07
+# Errors: 0, Warnings: 0

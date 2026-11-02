@@ -30,6 +30,7 @@ module median_switch_2px #(
     input  wire        in_hs,
     input  wire        in_vs,
     input  wire [15:0] in_gray2,
+    input  wire        en,          // 0 = pass-through (same latency)
 
     output reg         out_valid,
     output reg         out_hs,
@@ -66,7 +67,7 @@ module median_switch_2px #(
     wire [7:0] c0    = a0_11;
     wire [7:0] nmin0 = (c0 <= b0_1) ? b0_1 : b0_0;
     wire [7:0] nmax0 = (c0 >= b0_7) ? b0_7 : b0_8;
-    wire       imp0  = (c0 < nmin0) || (c0 > nmax0);
+    wire       imp0  = en && ((c0 < nmin0) || (c0 > nmax0));
     wire [7:0] px0   = imp0 ? b0_4 : c0;
 
     // ---------------- lane 1 (high byte of the pair) ----------------
@@ -85,7 +86,7 @@ module median_switch_2px #(
     wire [7:0] c1    = a1_11;
     wire [7:0] nmin1 = (c1 <= b1_1) ? b1_1 : b1_0;
     wire [7:0] nmax1 = (c1 >= b1_7) ? b1_7 : b1_8;
-    wire       imp1  = (c1 < nmin1) || (c1 > nmax1);
+    wire       imp1  = en && ((c1 < nmin1) || (c1 > nmax1));
     wire [7:0] px1   = imp1 ? b1_4 : c1;
 
     always @(posedge clk or negedge rst_n) begin

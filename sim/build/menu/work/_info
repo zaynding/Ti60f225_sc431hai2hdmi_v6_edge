@@ -1,0 +1,171 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
+vkey_sl
+Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
+Z2 !s110 1793642735
+!i10b 1
+!s100 jK]n_L02zYNl2Iiokn6zC0
+I=@JMMizglT>hGkbOVClfD0
+Z3 V`JN@9S9cnhjKRR_L]QIcM3
+!s105 key_sl_v_unit
+S1
+R0
+Z4 w1793642670
+8rtl_custom/key_sl.v
+Frtl_custom/key_sl.v
+L0 5
+Z5 OV;L;10.3c;59
+r1
+!s85 0
+31
+Z6 !s108 1793642735.664000
+Z7 !s107 sim/tb_ui_menu.sv|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|
+Z8 !s90 -sv|-work|sim/build/menu/work|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|sim/tb_ui_menu.sv|
+!i113 1
+Z9 o-sv -work sim/build/menu/work
+vmenu_bar_2px
+R1
+Z10 !s110 1793642748
+!i10b 1
+!s100 lTBA8YAkLD=>lO3SO<W]A1
+I9Mag;hPYf3HA9Y=o[OG0=3
+R3
+!s105 menu_bar_2px_v_unit
+S1
+R0
+w1793642691
+8rtl_custom/menu_bar_2px.v
+Frtl_custom/menu_bar_2px.v
+L0 7
+R5
+r1
+!s85 0
+31
+Z11 !s108 1793642748.797000
+Z12 !s107 sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_font_rom.v|
+Z13 !s90 -sv|-work|sim/build/menu/work|rtl_custom/menu_font_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|
+!i113 1
+R9
+vmenu_font_rom
+R1
+R10
+!i10b 1
+!s100 mlWV8QoM8AS;T3FY;4D5g0
+I9EMM4HT0T^UiAWZk?7DNA2
+R3
+!s105 menu_font_rom_v_unit
+S1
+R0
+Z14 w1793642647
+8rtl_custom/menu_font_rom.v
+Frtl_custom/menu_font_rom.v
+L0 3
+R5
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R9
+vmenu_text_rom
+R1
+R10
+!i10b 1
+!s100 kNAOnAcDW@oVaa>a?J>=^2
+Iz=VmLIc;H9zHQ1QMbhV_K1
+R3
+!s105 menu_text_rom_v_unit
+S1
+R0
+R14
+8rtl_custom/menu_text_rom.v
+Frtl_custom/menu_text_rom.v
+L0 4
+R5
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R9
+vtb_menu_bar
+R1
+R10
+!i10b 1
+!s100 R[K83LT0dHfaONE>bTTgD2
+I1d16n?Rki4jI2^=67hIaQ3
+R3
+!s105 tb_menu_bar_sv_unit
+S1
+R0
+w1793642748
+8sim/tb_menu_bar.sv
+Fsim/tb_menu_bar.sv
+L0 2
+R5
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R9
+vtb_ui_menu
+R1
+R2
+!i10b 1
+!s100 ?Lzd<XAHa]=5G;kMP[9im1
+IhUgTGiFZY^nH8]JEad[?c0
+R3
+!s105 tb_ui_menu_sv_unit
+S1
+R0
+w1793642735
+8sim/tb_ui_menu.sv
+Fsim/tb_ui_menu.sv
+L0 3
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!i113 1
+R9
+vui_ctrl
+R1
+R2
+!i10b 1
+!s100 >G?z5AfLIG<cT1NR93iRK0
+I]L8FcFbQzag53KAFAAOY72
+R3
+!s105 ui_ctrl_v_unit
+S1
+R0
+R4
+8rtl_custom/ui_ctrl.v
+Frtl_custom/ui_ctrl.v
+L0 12
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!i113 1
+R9

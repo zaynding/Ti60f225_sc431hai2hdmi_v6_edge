@@ -21,6 +21,7 @@ module display_split_2px #(
     input  wire        clk,
     input  wire        rst_n,
 
+    input  wire        show_red, show_color, show_edge,
     input  wire        src_valid,
     input  wire        src_vs,
     input  wire [47:0] src_rgb2,
@@ -206,16 +207,16 @@ module display_split_2px #(
             if (pipe_valid) begin
                 if (pipe_x < CROP_PAIRS) begin
                     out_rgb2 <= {
-                        ((pipe_line != 11'd0) && emask_q[1]) ?
-                            24'hFF0000 : cmem_q[47:24],
-                        ((pipe_line != 11'd0) && emask_q[0]) ?
-                            24'hFF0000 : cmem_q[23:0]
+                        ((pipe_line != 11'd0) && emask_q[1] && show_red) ?
+                            24'hFF0000 : (show_color ? cmem_q[47:24] : 24'h202020),
+                        ((pipe_line != 11'd0) && emask_q[0] && show_red) ?
+                            24'hFF0000 : (show_color ? cmem_q[23:0] : 24'h202020)
                     };
                 end
                 else if (pipe_x < (2 * CROP_PAIRS)) begin
                     out_rgb2 <= {
-                        pipe_edge[1] ? 24'hFFFFFF : 24'h000000,
-                        pipe_edge[0] ? 24'hFFFFFF : 24'h000000
+                        (pipe_edge[1] && show_edge) ? 24'hFFFFFF : 24'h000000,
+                        (pipe_edge[0] && show_edge) ? 24'hFFFFFF : 24'h000000
                     };
                 end
                 else begin
