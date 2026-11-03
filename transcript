@@ -1,29 +1,12 @@
-# vsim -c -lib sim/build/algo/work tb_edge_algo -do "run -all; quit -f" 
-# Start time: 04:28:24 on Nov 03,2026
+# vsim -c -lib sim/build/menu/work tb_ui_menu -do "run -all; quit -f" 
+# Start time: 08:53:18 on Nov 03,2026
 # Loading sv_std.std
-# Loading sim/build/algo/work.tb_edge_algo
-# Loading sim/build/algo/work.edge_algo_2px
-# Loading sim/build/algo/work.gaussian3x3_2px
-# Loading sim/build/algo/work.line_buffer_3x3_2px_p
-# Loading sim/build/algo/work.simple_dual_port_ram
-# Loading sim/build/algo/work.line_buffer_3x3_2px
-# Loading sim/build/algo/work.sobel3x3_2px
-# Loading sim/build/algo/work.sobel3x3_lane
-# Loading sim/build/algo/work.nms3x3_2px
-# Loading sim/build/algo/work.edge_link_2px
+# Loading sim/build/menu/work.tb_ui_menu
+# Loading sim/build/menu/work.ui_ctrl
+# Loading sim/build/menu/work.key_sl
 # run -all
-# frame 0: valid pairs 7900 lines 79 edge pixels 1869
-# frame 1: valid pairs 7900 lines 79 edge pixels 1869
-# frame 2: valid pairs 7900 lines 79 edge pixels 601
-# frame 3: valid pairs 7900 lines 79 edge pixels 601
-# frame 4: valid pairs 7900 lines 79 edge pixels 1869
-# frame 5: valid pairs 7900 lines 79 edge pixels 601
-# frame 1 vs period 132000000
-# frame 2 vs period 132000000
-# frame 3 vs period 132000000
-# frame 4 vs period 132000000
-# frame 5 vs period 132000000
-# ** Note: $finish    : sim/tb_edge_algo.sv(40)
-#    Time: 801700 ns  Iteration: 1  Instance: /tb_edge_algo
-# End time: 04:28:28 on Nov 03,2026, Elapsed time: 0:00:04
+# PASS: key short/long press, thresholds, freeze, menu select, item change, capture, slot skip, rotation
+# ** Note: $finish    : sim/tb_ui_menu.sv(50)
+#    Time: 117306280 ps  Iteration: 1  Instance: /tb_ui_menu
+# End time: 08:53:18 on Nov 03,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0

@@ -2,7 +2,7 @@
 //======================================================================================================
 // ui_ctrl.v - four-key user interface state machine (all in the video clock domain)
 //
-//   K1 short: next threshold step (6 steps)     long: step 1
+//   K1 short: next threshold step (6 manual steps, then AUTO)   long: step 1
 //   K2 short: next menu item                    long: previous item
 //   K3 short: change the highlighted item       long: reset that item to its default
 //   K0 short: freeze / back to live             long: capture a snapshot
@@ -21,7 +21,9 @@ module ui_ctrl #(
     output reg  [2:0] sel,
     output reg  [2:0] thr_idx,
     output reg  [11:0] thr12,
-    output reg        shape_on, algo_canny,
+    output reg        shape_on,
+    output reg  [1:0] algo,                          // 0 Sobel, 1 Canny, 2 side-by-side compare
+    output wire       thr_auto,
     output reg  [1:0] disp_mode,
     output reg  [2:0] src_mode,
     output reg  [2:0] flash
@@ -31,11 +33,12 @@ reg [27:0] rot_cnt;
 reg [27:0] flash_cnt;
 reg [3:0] valid_d;
 
-always @* case (thr_idx)
-    3'd0: thr12 = 12'd400; 3'd1: thr12 = 12'd320; 3'd2: thr12 = 12'd240;
-    3'd3: thr12 = 12'd160; 3'd4: thr12 = 12'd104; default: thr12 = 12'd64;
+always @* case (thr_idx)     // descending = more edges; 160 is the default (far enough below typical edge strength AND above grain)
+    3'd0: thr12 = 12'd320; 3'd1: thr12 = 12'd240; 3'd2: thr12 = 12'd160;
+    3'd3: thr12 = 12'd120; 3'd4: thr12 = 12'd90;  default: thr12 = 12'd64;   // idx 6 (auto) keeps 64 as the manual fallback
 endcase
 
+assign thr_auto  = (thr_idx == 3'd6);
 assign freeze    = (src_mode == 3'd1);
 assign view_mode = (src_mode >= 3'd2 && src_mode <= 3'd5) ? (src_mode - 3'd1) : (src_mode == 3'd6) ? rot_idx : 3'd0;
 
@@ -67,12 +70,12 @@ wire cap_req = k0_l || (k3_s && sel == 3'd1);
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        snapshot_toggle<=0; sel<=0; thr_idx<=0; shape_on<=1; algo_canny<=1; disp_mode<=0; src_mode<=0; flash<=0;
+        snapshot_toggle<=0; sel<=0; thr_idx<=3'd2; shape_on<=1; algo<=2'd1; disp_mode<=0; src_mode<=0; flash<=0;
         rot_idx<=0; rot_cnt<=0; flash_cnt<=0; valid_d<=0;
     end else begin
         valid_d <= saved_valid;
-        if (k1_s) thr_idx <= (thr_idx == 3'd5) ? 3'd0 : thr_idx + 1'b1;
-        if (k1_l) thr_idx <= 3'd0;
+        if (k1_s) thr_idx <= (thr_idx == 3'd6) ? 3'd0 : thr_idx + 1'b1;   // 0..5 manual steps, 6 = automatic
+        if (k1_l) thr_idx <= 3'd2;
         if (k2_s) sel <= (sel == 3'd4) ? 3'd0 : sel + 1'b1;
         if (k2_l) sel <= (sel == 3'd0) ? 3'd4 : sel - 1'b1;
         if (k0_s) src_mode <= (src_mode == 3'd0) ? 3'd1 : 3'd0;
@@ -80,14 +83,14 @@ always @(posedge clk or negedge rst_n) begin
         if (k3_s) case (sel)
             3'd0: src_mode  <= next_src(src_mode, saved_valid);
             3'd2: shape_on  <= ~shape_on;
-            3'd3: algo_canny <= ~algo_canny;
+            3'd3: algo <= (algo == 2'd2) ? 2'd0 : algo + 1'b1;
             3'd4: disp_mode <= (disp_mode == 2'd2) ? 2'd0 : disp_mode + 1'b1;
             default: begin end
         endcase
         if (k3_l) case (sel)
             3'd0: src_mode <= 3'd0;
             3'd2: shape_on <= 1'b1;
-            3'd3: algo_canny <= 1'b1;
+            3'd3: algo <= 2'd1;
             3'd4: disp_mode <= 2'd0;
             default: begin end
         endcase

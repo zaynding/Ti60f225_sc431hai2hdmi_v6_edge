@@ -41,6 +41,12 @@ module tb_display_split_2px;
     ) dut (
         .clk       (clk),
         .rst_n     (rst_n),
+        .show_red  (1'b1),
+        .show_color(1'b1),
+        .show_edge (1'b1),
+        .cmp_mode  (1'b0),
+        .s_edge0   (1'b0),
+        .s_edge1   (1'b0),
         .src_valid (src_valid),
         .src_vs    (src_vs),
         .src_rgb2  (src_rgb2),

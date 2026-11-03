@@ -20,27 +20,33 @@ always @* begin
     {3'd2, 2'd1, 4'd0}: begin glyph = (val==3'd0) ? 6'd20 : (6'd21); dim = 1'b0; end
     {3'd3, 2'd0, 4'd0}: begin glyph = 6'd22; dim = 1'b0; end
     {3'd3, 2'd0, 4'd1}: begin glyph = 6'd23; dim = 1'b0; end
-    {3'd3, 2'd1, 4'd0}: begin glyph = (val==3'd0) ? 6'd24 : (6'd25); dim = 1'b0; end
-    {3'd3, 2'd1, 4'd1}: begin glyph = (val==3'd0) ? 6'd26 : (6'd27); dim = 1'b0; end
-    {3'd3, 2'd1, 4'd2}: begin glyph = (val==3'd0) ? 6'd28 : (6'd29); dim = 1'b0; end
-    {3'd4, 2'd0, 4'd0}: begin glyph = 6'd30; dim = 1'b0; end
-    {3'd4, 2'd0, 4'd1}: begin glyph = 6'd31; dim = 1'b0; end
-    {3'd4, 2'd1, 4'd0}: begin glyph = (val==3'd0) ? 6'd32 : ((val==3'd1) ? 6'd33 : (6'd34)); dim = 1'b0; end
-    {3'd4, 2'd1, 4'd1}: begin glyph = (val==3'd0) ? 6'd35 : ((val==3'd1) ? 6'd36 : (6'd37)); dim = 1'b0; end
-    {3'd0, 2'd2, 4'd0}: begin glyph = 6'd38; dim = 1'b0; end
-    {3'd0, 2'd2, 4'd1}: begin glyph = 6'd39; dim = 1'b0; end
-    {3'd0, 2'd2, 4'd3}: begin glyph = 6'd40; dim = 1'b0; end
-    {3'd0, 2'd2, 4'd2}: begin glyph = (thr==3'd0) ? 6'd45 : ((thr==3'd1) ? 6'd44 : ((thr==3'd2) ? 6'd43 : ((thr==3'd3) ? 6'd42 : ((thr==3'd4) ? 6'd41 : (6'd46))))); dim = 1'b0; end
-    {3'd1, 2'd2, 4'd0}: begin glyph = 6'd47; dim = 1'b0; end
-    {3'd1, 2'd2, 4'd1}: begin glyph = 6'd48; dim = 1'b0; end
+    {3'd3, 2'd1, 4'd0}: begin glyph = (val==3'd0) ? 6'd24 : ((val==3'd1) ? 6'd25 : (6'd26)); dim = 1'b0; end
+    {3'd3, 2'd1, 4'd1}: begin glyph = (val==3'd0) ? 6'd27 : ((val==3'd1) ? 6'd28 : (6'd29)); dim = 1'b0; end
+    {3'd3, 2'd1, 4'd2}: begin glyph = (val==3'd0) ? 6'd30 : ((val==3'd1) ? 6'd31 : (6'd0)); dim = 1'b0; end
+    {3'd4, 2'd0, 4'd0}: begin glyph = 6'd32; dim = 1'b0; end
+    {3'd4, 2'd0, 4'd1}: begin glyph = 6'd33; dim = 1'b0; end
+    {3'd4, 2'd1, 4'd0}: begin glyph = (val==3'd0) ? 6'd34 : ((val==3'd1) ? 6'd35 : (6'd36)); dim = 1'b0; end
+    {3'd4, 2'd1, 4'd1}: begin glyph = (val==3'd0) ? 6'd37 : ((val==3'd1) ? 6'd38 : (6'd39)); dim = 1'b0; end
+    {3'd0, 2'd2, 4'd0}: begin glyph = 6'd40; dim = 1'b0; end
+    {3'd0, 2'd2, 4'd1}: begin glyph = 6'd41; dim = 1'b0; end
+    {3'd0, 2'd2, 4'd2}: begin glyph = (thr==3'd6) ? 6'd48 : ((thr==3'd0) ? 6'd47 : ((thr==3'd1) ? 6'd46 : ((thr==3'd2) ? 6'd45 : ((thr==3'd3) ? 6'd44 : ((thr==3'd4) ? 6'd43 : (6'd42)))))); dim = 1'b0; end
+    {3'd0, 2'd2, 4'd3}: begin glyph = (thr==3'd6) ? 6'd49 : 6'd50; dim = 1'b0; end
+    {3'd1, 2'd2, 4'd0}: begin glyph = 6'd51; dim = 1'b0; end
+    {3'd1, 2'd2, 4'd1}: begin glyph = 6'd52; dim = 1'b0; end
     {3'd1, 2'd2, 4'd2}: begin glyph = 6'd9; dim = ~valid[0]; end
     {3'd1, 2'd2, 4'd3}: begin glyph = 6'd10; dim = ~valid[1]; end
     {3'd1, 2'd2, 4'd4}: begin glyph = 6'd11; dim = ~valid[2]; end
     {3'd1, 2'd2, 4'd5}: begin glyph = 6'd12; dim = ~valid[3]; end
-    {3'd2, 2'd2, 4'd0}: begin glyph = (flash!=3'd0) ? 6'd49 : 6'd0; dim = 1'b0; end
-    {3'd2, 2'd2, 4'd1}: begin glyph = (flash!=3'd0) ? 6'd48 : 6'd0; dim = 1'b0; end
+    {3'd2, 2'd2, 4'd0}: begin glyph = (flash!=3'd0) ? 6'd53 : 6'd0; dim = 1'b0; end
+    {3'd2, 2'd2, 4'd1}: begin glyph = (flash!=3'd0) ? 6'd52 : 6'd0; dim = 1'b0; end
     {3'd2, 2'd2, 4'd2}: begin glyph = (flash!=3'd0) ? 6'd5 : 6'd0; dim = 1'b0; end
     {3'd2, 2'd2, 4'd3}: begin glyph = (flash==3'd0) ? 6'd0 : ((flash==3'd1) ? 6'd9 : ((flash==3'd2) ? 6'd10 : ((flash==3'd3) ? 6'd11 : (6'd12)))); dim = 1'b0; end
+    {3'd5, 2'd0, 4'd0}: begin glyph = 6'd24; dim = 1'b0; end
+    {3'd5, 2'd0, 4'd1}: begin glyph = 6'd27; dim = 1'b0; end
+    {3'd5, 2'd0, 4'd2}: begin glyph = 6'd30; dim = 1'b0; end
+    {3'd6, 2'd0, 4'd0}: begin glyph = 6'd25; dim = 1'b0; end
+    {3'd6, 2'd0, 4'd1}: begin glyph = 6'd28; dim = 1'b0; end
+    {3'd6, 2'd0, 4'd2}: begin glyph = 6'd31; dim = 1'b0; end
     default: begin end
     endcase
 end

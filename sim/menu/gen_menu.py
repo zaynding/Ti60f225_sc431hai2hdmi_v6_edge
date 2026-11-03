@@ -16,7 +16,7 @@ def tokens(s):
     return list(s)
 labels = ["帧源", "抓拍", "识别", "算法", "显示"]
 values = {0: ["实时", "冻结", "槽1", "槽2", "槽3", "槽4", "轮播"], 1: ["执行"], 2: ["关", "开"],
-          3: ["Sobel", "Canny"], 4: ["分屏", "原图", "边缘"]}
+          3: ["Sobel", "Canny", "对比"], 4: ["分屏", "原图", "边缘"]}
 def expr_choice(opts):
     if len(set(opts)) == 1: return "6'd%d" % opts[0]
     e = "6'd%d" % opts[-1]
@@ -29,23 +29,18 @@ for it in range(5):
     for pos in range(max(len(v) for v in vt)):
         rows.append((it, 1, pos, expr_choice([G(v[pos]) if pos < len(v) else 0 for v in vt]), "1'b0"))
 for i, c in enumerate("阈值"): rows.append((0, 2, i, "6'd%d" % G(c), "1'b0"))
-e = "6'd%d" % G("6 ")
-for k in range(4, -1, -1): e = "(thr==3'd%d) ? 6'd%d : (%s)" % (k, G("%d/" % (k+1)), e)
-rows.append((0, 2, 2, e.replace("(thr==3'd5) ? 6'd%d : " % 0, ""), "1'b0"))
-rows.append((0, 2, 3, "6'd%d" % G("6 "), "1'b0"))
-rows = [r for r in rows if not (r[0] == 0 and r[1] == 2 and r[2] == 3)]       # "6 " is the last cell
-rows.append((0, 2, 3, "6'd%d" % G("6 "), "1'b0"))
-# the pair cell for step 6 is "6/": make the thr==5 case explicit
-rows = [r for r in rows if not (r[0] == 0 and r[1] == 2 and r[2] == 2)]
 e = "6'd%d" % G("6/")
 for k in range(4, -1, -1): e = "(thr==3'd%d) ? 6'd%d : (%s)" % (k, G("%d/" % (k+1)), e)
-rows.append((0, 2, 2, e, "1'b0"))
+rows.append((0, 2, 2, "(thr==3'd6) ? 6'd%d : (%s)" % (G("自"), e), "1'b0"))
+rows.append((0, 2, 3, "(thr==3'd6) ? 6'd%d : 6'd%d" % (G("动"), G("6 ")), "1'b0"))
 for i, c in enumerate("缓存"): rows.append((1, 2, i, "6'd%d" % G(c), "1'b0"))
 for k in range(4): rows.append((1, 2, 2+k, "6'd%d" % G(str(k+1)), "~valid[%d]" % k))
 for i, c in enumerate("已存槽"): rows.append((2, 2, i, "(flash!=3'd0) ? 6'd%d : 6'd0" % G(c), "1'b0"))
 f = "6'd%d" % G("4")
 for k in (2, 1, 0): f = "(flash==3'd%d) ? 6'd%d : (%s)" % (k+1, G(str(k+1)), f)
 rows.append((2, 2, 3, "(flash==3'd0) ? 6'd0 : (" + f + ")", "1'b0"))
+for i, t in enumerate(tokens('Sobel')): rows.append((5, 0, i, "6'd%d" % G(t), "1'b0"))
+for i, t in enumerate(tokens('Canny')): rows.append((6, 0, i, "6'd%d" % G(t), "1'b0"))
 assert len(names) <= 64, len(names)
 
 def render_single(ch):

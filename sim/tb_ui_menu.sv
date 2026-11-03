@@ -9,10 +9,10 @@ generate for (g=0; g<4; g=g+1) begin : k
     key_sl #(.DEBOUNCE_CYCLES(20), .LONG_CYCLES(400)) u (.clk(clk), .rst_n(rst_n), .key_n(key_n[g]), .short_p(sp[g]), .long_p(lp[g]));
 end endgenerate
 reg [3:0] valid = 4'b0000;
-wire freeze, snap, shape_on, med_on; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
+wire freeze, snap, shape_on, thr_auto; wire [1:0] algo; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
 ui_ctrl #(.ROT_CYCLES(300)) u_ui (.clk(clk), .rst_n(rst_n), .k0_s(sp[0]), .k0_l(lp[0]), .k1_s(sp[1]), .k1_l(lp[1]), .k2_s(sp[2]), .k2_l(lp[2]),
     .k3_s(sp[3]), .k3_l(lp[3]), .saved_valid(valid), .freeze(freeze), .view_mode(view), .snapshot_toggle(snap), .sel(sel), .thr_idx(thr),
-    .thr12(thr12), .shape_on(shape_on), .algo_canny(med_on), .disp_mode(disp), .src_mode(src), .flash(flash));
+    .thr12(thr12), .shape_on(shape_on), .algo(algo), .thr_auto(thr_auto), .disp_mode(disp), .src_mode(src), .flash(flash));
 task press(input integer k, input integer len);
     begin key_n[k] = 0; repeat(len) @(negedge clk); key_n[k] = 1; repeat(60) @(negedge clk); end
 endtask
@@ -22,15 +22,16 @@ reg snap0;
 initial begin
     repeat(5) @(negedge clk); rst_n = 1; repeat(5) @(negedge clk);
     // K1: 6 steps and wrap
-    repeat(5) press(1, 60); check(thr == 5 && thr12 == 64, "thr step 5");
-    press(1, 60); check(thr == 0 && thr12 == 400, "thr wrap");
-    press(1, 60); press(1, 700); check(thr == 0, "thr long reset");
+    repeat(3) press(1, 60); check(thr == 5 && thr12 == 64 && !thr_auto, "thr step 5");
+    press(1, 60); check(thr == 6 && thr_auto, "thr auto");
+    press(1, 60); check(thr == 0 && thr12 == 320 && !thr_auto, "thr wrap");
+    press(1, 60); press(1, 700); check(thr == 2, "thr long reset");
     // K0: freeze toggle
     press(0, 60); check(freeze && src == 1, "freeze on"); press(0, 60); check(!freeze && src == 0, "live");
     // K2 select, K3 change
     press(2, 60); check(sel == 1, "sel 1"); press(2, 60); check(sel == 2, "sel 2");
     press(3, 60); check(!shape_on, "shape off"); press(3, 700); check(shape_on, "shape default");
-    press(2, 60); press(3, 60); check(!med_on, "median off");
+    press(2, 60); check(algo == 1, "algo default canny"); press(3, 60); check(algo == 2, "algo compare"); press(3, 60); check(algo == 0, "algo sobel"); press(3, 60); check(algo == 1, "algo canny"); press(3, 60); press(3, 700); check(algo == 1, "algo default");
     press(2, 60); press(3, 60); check(disp == 1, "disp 1"); press(3, 60); check(disp == 2, "disp 2"); press(3, 60); check(disp == 0, "disp 0");
     press(2, 700); check(sel == 3, "sel back");
     // capture: K0 long

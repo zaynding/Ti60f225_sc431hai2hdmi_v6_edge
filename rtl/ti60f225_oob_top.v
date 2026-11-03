@@ -841,6 +841,10 @@ debayer_top_2to1 debayer_top
 //***************************************************************************
 wire [11:0] edge_threshold_12;
 reg  [11:0] disp_threshold;     // latched at frame start (no tearing while pressing)
+reg  [11:0] disp_threshold_raw; // threshold for the raw Sobel branch (compare mode)
+wire [11:0] auto_th_main, auto_th_raw;
+wire        ui_thr_auto;
+wire [1:0]  ui_algo;
 
 // ---- four-key UI: K1 threshold, K2 select, K3 change/confirm, K0 freeze (short) / capture (long) ----
 wire k0_s, k0_l, k1_s, k1_l, k2_s, k2_l, k3_s, k3_l;
@@ -864,7 +868,7 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
 end
 
 wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
-wire       ui_shape_on, ui_algo_canny;
+wire       ui_shape_on;
 wire [1:0] ui_disp_mode;
 ui_ctrl u_ui_ctrl (
     .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
@@ -872,7 +876,7 @@ ui_ctrl u_ui_ctrl (
     .saved_valid(saved_valid_sync),
     .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
     .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
-    .shape_on(ui_shape_on), .algo_canny(ui_algo_canny), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
+    .shape_on(ui_shape_on), .algo(ui_algo), .thr_auto(ui_thr_auto), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
 
 // apply key changes only at the start of a frame
@@ -882,12 +886,14 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
     if (!vid_rst_n) begin
         vs_key_d      <= 1'b0;
         disp_threshold <= 12'd400;
+        disp_threshold_raw <= 12'd400;
     end
     else begin
         vs_key_d <= rgb_vs;
 
         if (vs_key_rise)
-            disp_threshold <= edge_threshold_12;
+            disp_threshold     <= ui_thr_auto ? auto_th_main : edge_threshold_12;
+            disp_threshold_raw <= ui_thr_auto ? auto_th_raw  : edge_threshold_12;
     end
 end
 
@@ -928,13 +934,14 @@ median_switch_2px #(
 );
 
 // Sobel / Canny edge stage (Gaussian -> window -> Sobel -> {threshold | NMS -> double threshold + linking})
-wire edge0, edge1;
+wire edge0, edge1, s_edge0, s_edge1;
 wire edge_valid, edge_hs, edge_vs;
 
 edge_algo_2px #(
     .PAIR_COUNT  (960),
     .MAX_LINES   (1080),
-    .LINE_CYCLES (1100)
+    .LINE_CYCLES (1100),
+    .SOBEL_DELAY_BASE (14)
 ) u_edge_algo_2px (
     .clk       (vid_clk_dvi2),
     .rst_n     (vid_rst_n),
@@ -942,13 +949,18 @@ edge_algo_2px #(
     .in_hs     (medg_hs),
     .in_vs     (medg_vs),
     .in_gray2  (medg2),
-    .algo      (ui_algo_canny),
-    .threshold (disp_threshold),
+    .algo      (ui_algo),
+    .th_main   (disp_threshold),
+    .th_raw    (disp_threshold_raw),
     .out_valid (edge_valid),
     .out_hs    (edge_hs),
     .out_vs    (edge_vs),
     .edge0     (edge0),
-    .edge1     (edge1)
+    .edge1     (edge1),
+    .s_edge0   (s_edge0),
+    .s_edge1   (s_edge1),
+    .auto_main (auto_th_main),
+    .auto_raw  (auto_th_raw)
 );
 
 wire [1:0] desp_edge2;
@@ -972,6 +984,27 @@ despeckle_2px #(
     .out_edge2 (desp_edge2)
 );
 
+// same isolated-pixel removal on the raw Sobel branch (used by the left panel in compare mode)
+wire [1:0] desp_s_edge2;
+wire       desp_s_valid, desp_s_hs, desp_s_vs;
+despeckle_2px #(
+    .PAIR_COUNT (960),
+    .MAX_LINES  (1080),
+    .KEEP_MIN   (1),
+    .FILL_MIN   (9)
+) u_despeckle_s_2px (
+    .clk       (vid_clk_dvi2),
+    .rst_n     (vid_rst_n),
+    .in_valid  (edge_valid),
+    .in_hs     (edge_hs),
+    .in_vs     (edge_vs),
+    .in_edge2  ({s_edge1, s_edge0}),
+    .out_valid (desp_s_valid),
+    .out_hs    (desp_s_hs),
+    .out_vs    (desp_s_vs),
+    .out_edge2 (desp_s_edge2)
+);
+
 // ---- left / right split screen ----
 //  left  half (0..959)   : colour central crop with red edge overlay
 //  right half (960..1919): binary edges of the SAME central crop
@@ -990,6 +1023,9 @@ display_split_2px #(
     .show_red  (ui_disp_mode != 2'd1),
     .show_color(ui_disp_mode != 2'd2),
     .show_edge (ui_disp_mode != 2'd1),
+    .cmp_mode  (ui_algo == 2'd2),
+    .s_edge0   (desp_s_edge2[0]),
+    .s_edge1   (desp_s_edge2[1]),
     .src_valid (rgb_de),
     .src_vs    (rgb_vs),
     .src_rgb2  (rgb_datax2),
@@ -1038,7 +1074,7 @@ wire [47:0] bar_rgb2;
 menu_bar_2px #(.BAR_Y(960)) u_menu_bar (.clk(vid_clk_dvi2), .rst_n(vid_rst_n),
     .in_valid(shp_valid), .in_hs(shp_hs), .in_vs(shp_vs), .in_rgb2(shp_rgb2),
     .sel(ui_sel), .src_mode(ui_src_mode), .thr_idx(ui_thr_idx), .flash(ui_flash),
-    .shape_on(ui_shape_on), .algo_canny(ui_algo_canny), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
+    .shape_on(ui_shape_on), .cmp_mode(ui_algo == 2'd2), .algo(ui_algo), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
     .out_valid(bar_valid), .out_hs(bar_hs), .out_vs(bar_vs), .out_rgb2(bar_rgb2));
 
 mode_overlay_2px #(

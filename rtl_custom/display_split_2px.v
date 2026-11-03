@@ -22,6 +22,8 @@ module display_split_2px #(
     input  wire        rst_n,
 
     input  wire        show_red, show_color, show_edge,
+    input  wire        cmp_mode,                 // 1: left panel = raw Sobel edges, right panel = main (Canny) edges
+    input  wire        s_edge0, s_edge1,         // raw Sobel edges, aligned with edge0/edge1
     input  wire        src_valid,
     input  wire        src_vs,
     input  wire [47:0] src_rgb2,
@@ -50,7 +52,8 @@ module display_split_2px #(
 
     localparam integer PW    = clog2(PAIR_COUNT);
     localparam integer SW    = clog2(BUF_LINES);
-    localparam integer DEPTH = BUF_LINES << PW;
+    localparam integer CW    = clog2(CROP_PAIRS);          // colour line buffer holds only the displayed crop
+    localparam integer DEPTH = BUF_LINES << CW;
     localparam [PW-1:0] CROP_X_START = CROP_X_PAIR;
     localparam [PW-1:0] CROP_X_END   = CROP_X_PAIR + CROP_PAIRS;
 
@@ -93,9 +96,10 @@ module display_split_2px #(
         end
     end
 
+    wire [PW-1:0] wr_off = wr_pair - CROP_X_START;
     always @(posedge clk) begin
-        if (src_valid)
-            cmem[{wr_slot, wr_pair}] <= src_rgb2;
+        if (src_valid && wr_pair >= CROP_X_START && wr_pair < CROP_X_END)
+            cmem[{wr_slot, wr_off[CW-1:0]}] <= src_rgb2;
     end
 
     //=============================================================================================
@@ -109,8 +113,7 @@ module display_split_2px #(
 
     // Read central-crop colour for the left half only.
     wire         left_read     = in_valid && (x_in < CROP_PAIRS);
-    wire [PW-1:0] color_raddr  = left_read ? (x_in + CROP_X_START) :
-                                             {PW{1'b0}};
+    wire [PW-1:0] color_raddr  = left_read ? x_in : {PW{1'b0}};
     wire [PW-1:0] emask_raddr  = left_read ? x_in : {PW{1'b0}};
 
     // Write the current edge row into the central-crop mask.  While writing
@@ -122,14 +125,18 @@ module display_split_2px #(
     wire [PW-1:0] emask_waddr = x_in - CROP_X_START;
 
     // Registered RAM outputs.  Both colour and mask use the same pipeline.
+    reg cmp_l;                                   // compare mode, sampled at the start of every frame
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) cmp_l <= 1'b0;
+        else if (in_vs & ~in_vs_d) cmp_l <= cmp_mode;
     reg [47:0] cmem_q;
     reg [1:0]  emask_q;
 
     always @(posedge clk) begin
-        cmem_q  <= cmem[{rd_slot, color_raddr}];
+        cmem_q  <= cmem[{rd_slot, color_raddr[CW-1:0]}];
         emask_q <= emask_mem[emask_raddr];
         if (emask_we)
-            emask_mem[emask_waddr] <= {edge1, edge0};
+            emask_mem[emask_waddr] <= cmp_l ? {s_edge1, s_edge0} : {edge1, edge0};
     end
 
     //=============================================================================================
@@ -206,7 +213,10 @@ module display_split_2px #(
 
             if (pipe_valid) begin
                 if (pipe_x < CROP_PAIRS) begin
-                    out_rgb2 <= {
+                    out_rgb2 <= cmp_l ? {
+                        ((pipe_line != 11'd0) && emask_q[1] && show_edge) ? 24'hFFFFFF : 24'h000000,
+                        ((pipe_line != 11'd0) && emask_q[0] && show_edge) ? 24'hFFFFFF : 24'h000000
+                    } : {
                         ((pipe_line != 11'd0) && emask_q[1] && show_red) ?
                             24'hFF0000 : (show_color ? cmem_q[47:24] : 24'h202020),
                         ((pipe_line != 11'd0) && emask_q[0] && show_red) ?
