@@ -16,7 +16,8 @@ module display_split_2px #(
     parameter integer LINE_COUNT  = 1080,
     parameter integer CROP_X_PAIR = 240,
     parameter integer CROP_PAIRS  = 480,
-    parameter integer BUF_LINES   = 8
+    parameter integer BUF_LINES   = 8,
+    parameter integer DIGIT_SUPPORT = 0
 )(
     input  wire        clk,
     input  wire        rst_n,
@@ -32,6 +33,10 @@ module display_split_2px #(
     input  wire        src_valid,
     input  wire        src_vs,
     input  wire [47:0] src_rgb2,
+
+    // Optional original-resolution digit contour stream, ahead of the edge chain.
+    input  wire        digit_mode, digit_valid, digit_vs,
+    input  wire [1:0]  digit_mask2,
 
     input  wire        in_valid,
     input  wire        in_hs,
@@ -68,6 +73,29 @@ module display_split_2px #(
 
     // Central-crop edge line buffer, two pixels per word.
     reg [1:0] emask_mem [0:CROP_PAIRS-1];
+    reg          in_vs_d;
+    reg [1:0] digit_mem [0:DEPTH-1];
+    reg [PW-1:0] digit_x;
+    reg [SW-1:0] digit_slot;
+    reg digit_vs_d, digit_l;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin digit_x<=0; digit_slot<=0; digit_vs_d<=0; digit_l<=0; end
+        else begin
+            digit_vs_d<=digit_vs;
+            if (in_vs && !in_vs_d) digit_l<=DIGIT_SUPPORT && digit_mode;
+            if (digit_vs && !digit_vs_d) begin digit_x<=0; digit_slot<=0; end
+            else if (digit_valid) begin
+                if (digit_x==PAIR_COUNT-1) begin
+                    digit_x<=0;
+                    digit_slot<=(digit_slot==BUF_LINES-1) ? {SW{1'b0}} : digit_slot+1'b1;
+                end else digit_x<=digit_x+1'b1;
+            end
+        end
+    end
+    wire [PW-1:0] digit_wa=digit_x-CROP_X_START;
+    always @(posedge clk)
+        if (DIGIT_SUPPORT && digit_valid && digit_x>=CROP_X_START && digit_x<CROP_X_END)
+            digit_mem[{digit_slot,digit_wa[CW-1:0]}]<=digit_mask2;
 
     //=============================================================================================
     // Colour write port
@@ -112,7 +140,6 @@ module display_split_2px #(
     //=============================================================================================
     reg [PW-1:0] x_in;
     reg [SW-1:0] rd_slot;
-    reg          in_vs_d;
     reg          in_hs_d;
     reg [10:0]   line_y;
 
@@ -136,10 +163,13 @@ module display_split_2px #(
         else if (in_vs & ~in_vs_d) cmp_l <= cmp_mode;
     reg [47:0] cmem_q;
     reg [1:0]  emask_q;
+    reg [1:0]  digit_q;
+    wire [PW-1:0] digit_ra=(x_in<CROP_PAIRS) ? x_in : x_in-CROP_PAIRS;
 
     always @(posedge clk) begin
         cmem_q  <= cmem[{rd_slot, color_raddr[CW-1:0]}];
         emask_q <= emask_mem[emask_raddr];
+        if (DIGIT_SUPPORT) digit_q<=digit_mem[{rd_slot,digit_ra[CW-1:0]}];
         if (emask_we)
             emask_mem[emask_waddr] <= cmp_l ? {s_edge1, s_edge0} : {edge1, edge0};
     end
@@ -240,7 +270,14 @@ module display_split_2px #(
             out_vs    <= pipe_vs;
 
             if (pipe_valid) begin
-                if (pipe_x < CROP_PAIRS) begin
+                if (digit_l) begin
+                    if (pipe_x<CROP_PAIRS) out_rgb2<={
+                        digit_q[1] ? 24'h00FF00 : cmem_q[47:24],
+                        digit_q[0] ? 24'h00FF00 : cmem_q[23:0]};
+                    else out_rgb2<={
+                        digit_q[1] ? 24'h00FF00 : 24'h000000,
+                        digit_q[0] ? 24'h00FF00 : 24'h000000};
+                end else if (pipe_x < CROP_PAIRS) begin
                     out_rgb2 <= cmp_l ? {
                         ((pipe_line != 11'd0) && emask_q[1] && show_edge) ? 24'hFFFFFF : 24'h000000,
                         ((pipe_line != 11'd0) && emask_q[0] && show_edge) ? 24'hFFFFFF : 24'h000000

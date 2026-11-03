@@ -9,25 +9,34 @@ generate for (g=0; g<4; g=g+1) begin : k
     key_sl #(.DEBOUNCE_CYCLES(20), .LONG_CYCLES(400)) u (.clk(clk), .rst_n(rst_n), .key_n(key_n[g]), .short_p(sp[g]), .long_p(lp[g]));
 end endgenerate
 reg [3:0] valid = 4'b0000;
-wire freeze, snap, clear_saved, shape_on, thr_auto, fps_on; wire [1:0] algo; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
+wire freeze, snap, clear_saved, shape_on, thr_auto, fps_on, digit_active, digit_start; wire [1:0] algo; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
 ui_ctrl #(.ROT_CYCLES(300)) u_ui (.clk(clk), .rst_n(rst_n), .k0_s(sp[0]), .k0_l(lp[0]), .k1_s(sp[1]), .k1_l(lp[1]), .k2_s(sp[2]), .k2_l(lp[2]),
     .k3_s(sp[3]), .k3_l(lp[3]), .saved_valid(valid), .ext_slot1(1'b0), .clear_saved_toggle(clear_saved), .freeze(freeze), .view_mode(view), .snapshot_toggle(snap), .sel(sel), .thr_idx(thr),
-    .thr12(thr12), .shape_on(shape_on), .fps_on(fps_on), .algo(algo), .thr_auto(thr_auto), .disp_mode(disp), .src_mode(src), .flash(flash));
+    .thr12(thr12), .shape_on(shape_on), .fps_on(fps_on), .algo(algo), .thr_auto(thr_auto), .disp_mode(disp), .src_mode(src), .flash(flash),
+    .digit_active(digit_active), .digit_start(digit_start));
 task press(input integer k, input integer len);
     begin key_n[k] = 0; repeat(len) @(negedge clk); key_n[k] = 1; repeat(60) @(negedge clk); end
 endtask
 integer errs = 0;
 task check(input cond, input [255:0] msg); begin if (!cond) begin errs = errs + 1; $display("FAIL: %0s", msg); end end endtask
 reg snap0, clear0;
+integer starts=0;
+always @(negedge clk) if(digit_start) starts=starts+1;
 initial begin
     repeat(5) @(negedge clk); rst_n = 1; repeat(5) @(negedge clk);
     // K1: 6 steps and wrap
     repeat(3) press(1, 60); check(thr == 5 && thr12 == 64 && !thr_auto, "thr step 5");
     press(1, 60); check(thr == 6 && thr_auto, "thr auto");
     press(1, 60); check(thr == 0 && thr12 == 320 && !thr_auto, "thr wrap");
-    press(1, 60); press(1, 700); check(thr == 2, "thr long reset");
+    press(1, 60); press(1, 1600);
+    check(thr == 1 && digit_active && !freeze && src==0 && starts==1, "K1 long starts once, preserves threshold, stays live");
+    press(0,60); check(!digit_active && !freeze && src==0, "K0 exits digit recognition");
     // K0: freeze toggle
     press(0, 60); check(freeze && src == 1, "freeze on"); press(0, 60); check(!freeze && src == 0, "live");
+    // Recognition must also resume the camera when entered from a frozen view.
+    press(0,60);check(freeze,"freeze before K1");press(1,700);
+    check(digit_active && !freeze && src==0 && starts==2,"K1 resumes live instead of freezing");
+    press(0,60);check(!digit_active && !freeze,"exit recognition remains live");
     // K2 select, K3 change
     press(2, 60); check(sel == 1, "sel 1"); press(2, 60); check(sel == 2, "sel 2");
     press(3, 60); check(!shape_on, "shape off"); clear0 = clear_saved; press(3, 700); check(!shape_on && clear_saved != clear0, "long K3 clears instead of shape reset");

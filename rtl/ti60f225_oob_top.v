@@ -930,6 +930,7 @@ wire ui_ext_slot1 = pl_tog_s[2] ^ pl_tog_s[1];
 
 wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
 wire       ui_shape_on, ui_fps_on;
+wire       ui_digit_active, ui_digit_start;
 wire [1:0] ui_disp_mode;
 ui_ctrl u_ui_ctrl (
     .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
@@ -937,6 +938,7 @@ ui_ctrl u_ui_ctrl (
     .saved_valid(saved_valid_sync), .ext_slot1(ui_ext_slot1),
     .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
     .clear_saved_toggle(clear_saved_toggle),
+    .digit_active(ui_digit_active), .digit_start(ui_digit_start),
     .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
     .shape_on(ui_shape_on), .fps_on(ui_fps_on), .algo(ui_algo), .thr_auto(ui_thr_auto), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
@@ -975,6 +977,63 @@ rgb2gray_2px u_rgb2gray_2px (
     .out_vs     (gray_vs),
     .out_gray2  (gray2)
 );
+
+// Long K1: continuous live nearest-glyph matching, without freezing the camera.
+wire digit_map_we, digit_map_bit, digit_capture_done, digit_capture_busy;
+wire [15:0] digit_map_addr;
+wire [7:0] digit_ink_threshold;
+wire digit_match_busy, digit_match_done, digit_found;
+wire [4:0] digit_result;
+wire [3:0] digit_lhs;
+wire [23:0] digit_x0,digit_x1;
+wire [26:0] digit_y0,digit_y1;
+wire digit_mask_valid,digit_mask_hs,digit_mask_vs;
+wire [1:0] digit_mask2;
+digit_capture_2px u_digit_capture (
+    .clk(vid_clk_dvi2),.rst_n(vid_rst_n),.enable(ui_digit_active),.start(ui_digit_start),.ready(!digit_match_busy),
+    .in_valid(gray_valid),.in_vs(gray_vs),.in_gray2(gray2),
+    .map_we(digit_map_we),.map_addr(digit_map_addr),.map_bit(digit_map_bit),
+    .done(digit_capture_done),.busy(digit_capture_busy),.ink_threshold(digit_ink_threshold));
+digit_match_7p2 u_digit_match (
+    .clk(vid_clk_dvi2),.rst_n(vid_rst_n),.enable(ui_digit_active),.restart(ui_digit_start),.go(digit_capture_done),
+    .map_we(digit_map_we),.map_waddr(digit_map_addr),.map_wbit(digit_map_bit),
+    .busy(digit_match_busy),.done(digit_match_done),.found(digit_found),.result(digit_result),.lhs_value(digit_lhs),
+    .box_x0(digit_x0),.box_x1(digit_x1),.box_y0(digit_y0),.box_y1(digit_y1));
+wire digit_stable_found,digit_answer_ready;
+wire [3:0] digit_stable_lhs;
+wire [4:0] digit_stable_result;
+wire [23:0] digit_stable_x0,digit_stable_x1;
+wire [26:0] digit_stable_y0,digit_stable_y1;
+reg digit_gray_vs_d;
+digit_result_control u_digit_result_control (
+    .clk(vid_clk_dvi2),.rst_n(vid_rst_n),.enable(ui_digit_active),.restart(ui_digit_start),
+    .frame_start(gray_vs && !digit_gray_vs_d),.det_done(digit_match_done),.det_found(digit_found),
+    .det_lhs(digit_lhs),.det_result(digit_result),.det_x0(digit_x0),.det_x1(digit_x1),.det_y0(digit_y0),.det_y1(digit_y1),
+    .stable_found(digit_stable_found),.stable_lhs(digit_stable_lhs),.stable_result(digit_stable_result),
+    .stable_x0(digit_stable_x0),.stable_x1(digit_stable_x1),.stable_y0(digit_stable_y0),.stable_y1(digit_stable_y1),.answer_ready(digit_answer_ready));
+// Publish one coherent set of boxes for the complete displayed frame.
+reg digit_vis_found;
+reg [4:0] digit_vis_result;
+reg [3:0] digit_vis_lhs;
+reg [23:0] digit_vis_x0,digit_vis_x1;
+reg [26:0] digit_vis_y0,digit_vis_y1;
+always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
+    if(!vid_rst_n) begin
+        digit_gray_vs_d<=0;digit_vis_found<=0;digit_vis_result<=0;digit_vis_lhs<=0;
+        digit_vis_x0<=0;digit_vis_x1<=0;digit_vis_y0<=0;digit_vis_y1<=0;
+    end else begin
+        digit_gray_vs_d<=gray_vs;
+        if(gray_vs && !digit_gray_vs_d) begin
+            digit_vis_found<=ui_digit_active && digit_stable_found;digit_vis_result<=digit_stable_result;digit_vis_lhs<=digit_stable_lhs;
+            digit_vis_x0<=digit_stable_x0;digit_vis_x1<=digit_stable_x1;digit_vis_y0<=digit_stable_y0;digit_vis_y1<=digit_stable_y1;
+        end
+    end
+end
+digit_outline_2px u_digit_outline (
+    .clk(vid_clk_dvi2),.rst_n(vid_rst_n),.enable(ui_digit_active),.found(digit_stable_found),.lhs_value(digit_stable_lhs),
+    .ink_threshold(digit_ink_threshold),.box_x0(digit_stable_x0),.box_x1(digit_stable_x1),.box_y0(digit_stable_y0),.box_y1(digit_stable_y1),
+    .in_valid(gray_valid),.in_hs(gray_hs),.in_vs(gray_vs),.in_gray2(gray2),
+    .out_valid(digit_mask_valid),.out_hs(digit_mask_hs),.out_vs(digit_mask_vs),.out_mask2(digit_mask2));
 
 wire [15:0] medg2;
 wire        medg_valid, medg_hs, medg_vs;
@@ -1081,14 +1140,15 @@ display_split_2px #(
     .LINE_COUNT  (1080),
     .CROP_X_PAIR (240),
     .CROP_PAIRS  (480),
-    .BUF_LINES   (8)
+    .BUF_LINES   (8),
+    .DIGIT_SUPPORT (1)
 ) u_display_split_2px (
     .clk       (vid_clk_dvi2),
     .rst_n     (vid_rst_n),
     .show_red  (ui_disp_mode != 2'd1),
     .show_color(ui_disp_mode != 2'd2),
     .show_edge (ui_disp_mode != 2'd1),
-    .sup_en    (ui_shape_on),
+    .sup_en    (ui_shape_on && !ui_digit_active),
     .sup_vis   (st_vis),
     .sup_xmin  (st_x0), .sup_xmax(st_x1), .sup_ymin(st_y0), .sup_ymax(st_y1),
     .cmp_mode  (ui_algo == 2'd2),
@@ -1097,6 +1157,7 @@ display_split_2px #(
     .src_valid (rgb_de),
     .src_vs    (rgb_vs),
     .src_rgb2  (rgb_datax2),
+    .digit_mode(ui_digit_active), .digit_valid(digit_mask_valid), .digit_vs(digit_mask_vs), .digit_mask2(digit_mask2),
     .in_valid  (desp_valid),
     .in_hs     (desp_hs),
     .in_vs     (desp_vs),
@@ -1142,14 +1203,24 @@ shape_track #(.NT(3), .NP(3)) u_shape_trk (.clk(vid_clk_dvi2), .rst_n(vid_rst_n)
     .trk_ymin(st_y0), .trk_ymax(st_y1), .trk_par(st_par));
 // Chinese class names above each shape (no bounding box: the fitted outline replaces it)
 wire        nm_valid, nm_hs, nm_vs;  wire [47:0] nm_rgb2;
-shape_overlay_2px #(.NT(3), .PAIR_COUNT(960)) u_shape_ovl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on), .show_box(1'b0),
+shape_overlay_2px #(.NT(3), .PAIR_COUNT(960)) u_shape_ovl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on && !ui_digit_active), .show_box(1'b0),
     .in_valid(split_valid), .in_hs(split_hs), .in_vs(split_vs), .in_rgb2(split_rgb2),
     .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1), .trk_ymin(st_y0), .trk_ymax(st_y1),
     .out_valid(nm_valid), .out_hs(nm_hs), .out_vs(nm_vs), .out_rgb2(nm_rgb2));
-shape_fit_draw_2px #(.NT(3)) u_shape_fit_draw (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on),
+shape_fit_draw_2px #(.NT(3)) u_shape_fit_draw (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on && !ui_digit_active),
     .in_valid(nm_valid), .in_hs(nm_hs), .in_vs(nm_vs), .in_rgb2(nm_rgb2),
     .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1), .trk_ymin(st_y0), .trk_ymax(st_y1), .trk_par(st_par),
     .out_valid(shp_valid), .out_hs(shp_hs), .out_vs(shp_vs), .out_rgb2(shp_rgb2));
+
+wire digit_disp_valid,digit_disp_hs,digit_disp_vs;
+wire [47:0] digit_disp_rgb2;
+digit_result_overlay_2px u_digit_result_overlay (
+    .clk(vid_clk_dvi2),.rst_n(vid_rst_n),.enable(ui_digit_active),
+    .busy(digit_capture_busy || digit_match_busy),.found(digit_vis_found),.result(digit_vis_result),
+    .lhs_value(digit_vis_lhs),.answer_ready(digit_answer_ready),
+    .box_x0(digit_vis_x0),.box_x1(digit_vis_x1),.box_y0(digit_vis_y0),.box_y1(digit_vis_y1),
+    .in_valid(shp_valid),.in_hs(shp_hs),.in_vs(shp_vs),.in_rgb2(shp_rgb2),
+    .out_valid(digit_disp_valid),.out_hs(digit_disp_hs),.out_vs(digit_disp_vs),.out_rgb2(digit_disp_rgb2));
 
 // ---- frame-rate meter: camera frames (toggle generated in the camera pixel-clock domain) and HDMI output frames ----
 reg cam_vs_d = 1'b0, cam_tog = 1'b0;
@@ -1164,7 +1235,7 @@ fps_meter #(.CLK_HZ(74250000)) u_fps_meter (.clk(vid_clk_dvi2), .rst_n(vid_rst_n
 wire        bar_valid, bar_hs, bar_vs;
 wire [47:0] bar_rgb2;
 menu_bar_2px #(.BAR_Y(960)) u_menu_bar (.clk(vid_clk_dvi2), .rst_n(vid_rst_n),
-    .in_valid(shp_valid), .in_hs(shp_hs), .in_vs(shp_vs), .in_rgb2(shp_rgb2),
+    .in_valid(digit_disp_valid), .in_hs(digit_disp_hs), .in_vs(digit_disp_vs), .in_rgb2(digit_disp_rgb2),
     .sel(ui_sel), .src_mode(ui_src_mode), .thr_idx(ui_thr_idx), .flash(ui_flash),
     .shape_on(ui_shape_on), .cmp_mode(ui_algo == 2'd2), .fps_on(ui_fps_on), .fps_out(fps_out_v), .fps_cam(fps_cam_v), .algo(ui_algo), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
     .out_valid(bar_valid), .out_hs(bar_hs), .out_vs(bar_vs), .out_rgb2(bar_rgb2));

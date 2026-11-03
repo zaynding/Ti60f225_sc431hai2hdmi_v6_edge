@@ -1,0 +1,15 @@
+{
+  "Baseline revision 2": {
+    "cap_interior_edges": 1114,
+    "lower_right_contour_roi_edges": 10,
+    "lower_left_background_roi_edges": 0
+  },
+  "Targeted screw edit": {
+    "cap_interior_edges": 162,
+    "lower_right_contour_roi_edges": 56,
+    "lower_left_background_roi_edges": 0
+  },
+  "retained_shaft_mean_abs_difference": 10.284,
+  "screw_raw_sha256": "1d5447f8d3a7d0e391472c3430bc21f299c7f73b42b6690af7d02700746e773b",
+  "caliper_unchanged": true
+}

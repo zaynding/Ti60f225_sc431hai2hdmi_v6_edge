@@ -1,5 +1,7 @@
 # 自然灰背景、柔和投影版（v3）
 
+当前默认加载入口已回退到“第二版”：`frame1_screw_natural.png`、`frame2_caliper_natural.png`，RAW 位于 `demo_raw_natural`。这是最初的灰背景、较浅柔影版本，未进行后续加深或扩大阴影。`load_demo_natural.ps1` 和 `load_demo_shadowfree.ps1` 均加载此版。下文保留 v3 的生成记录；K3 清除缓存 3、4 的 RTL 和比特流不受图片回退影响。
+
 2026-11-03，使用内置 imagegen 编辑原始螺丝和卡尺照片，随后按用户反馈稍微加深并扩大阴影。原图、此前去阴影版、自然版 v1/v2 均保留。
 
 最终源图：
@@ -25,7 +27,7 @@ cd "E:\FPGA2026\Ti60f225_sc431hai2hdmi_v6_edge"
 .\load_demo_natural.ps1
 ```
 
-原命令 load_demo_shadowfree.ps1 也已指向本版。这会覆盖缓存帧 1、2；缓存 3、4 不变。沿用正在运行的比特流即可，无需重新编译、烧录或清空缓存。
+目前上述两个加载入口均指向第二版（demo_raw_natural），覆盖缓存帧 1、2；缓存 3、4 不变。沿用正在运行的比特流即可，无需重新编译、烧录或清空缓存。
 
 回到上一版完全去阴影图，可显式指定：
 

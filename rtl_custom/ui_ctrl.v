@@ -2,7 +2,7 @@
 //======================================================================================================
 // ui_ctrl.v - four-key user interface state machine (all in the video clock domain)
 //
-//   K1 short: next threshold step (6 manual steps, then AUTO)   long: step 1
+//   K1 short: next threshold step (6 manual steps, then AUTO)   long: recognize 7+2
 //   K2 short: next menu item                    long: previous item
 //   K3 short: change the highlighted item       long: clear saved frames 3/4 (any menu item)
 //   K0 short: freeze / back to live             long: capture a snapshot
@@ -28,7 +28,9 @@ module ui_ctrl #(
     output wire       thr_auto,
     output reg  [1:0] disp_mode,
     output reg  [2:0] src_mode,
-    output reg  [2:0] flash
+    output reg  [2:0] flash,
+    output reg        digit_active,
+    output reg        digit_start
 );
 reg [2:0] rot_idx;
 reg [27:0] rot_cnt;
@@ -74,10 +76,11 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         snapshot_toggle<=0; clear_saved_toggle<=0; sel<=0; thr_idx<=3'd2; shape_on<=1; fps_on<=0; algo<=2'd1; disp_mode<=0; src_mode<=0; flash<=0;
         rot_idx<=0; rot_cnt<=0; flash_cnt<=0; valid_d<=0;
+        digit_active<=0; digit_start<=0;
     end else begin
+        digit_start <= 1'b0;
         valid_d <= saved_valid;
         if (k1_s) thr_idx <= (thr_idx == 3'd6) ? 3'd0 : thr_idx + 1'b1;   // 0..5 manual steps, 6 = automatic
-        if (k1_l) thr_idx <= 3'd2;
         if (k2_s) sel <= (sel == 3'd5) ? 3'd0 : sel + 1'b1;
         if (k2_l) sel <= (sel == 3'd0) ? 3'd5 : sel - 1'b1;
         if (k0_s) src_mode <= (src_mode == 3'd0) ? 3'd1 : 3'd0;
@@ -111,6 +114,17 @@ always @(posedge clk or negedge rst_n) begin
             if (rot_idx >= 3'd3) rot_idx <= 3'd0;
             flash <= 0;
             flash_cnt <= 0;
+        end
+        // Recognition stays on the live camera. Source changes exit recognition.
+        // A long K1 hold produces exactly one start and does not alter the threshold.
+        if (ext_slot1 || k0_s || k0_l || (k3_s && sel == 3'd0)) begin
+            digit_active <= 1'b0;
+            if (digit_active && (k0_s || k0_l)) src_mode <= 3'd0;
+        end
+        if (k1_l) begin
+            src_mode <= 3'd0;
+            digit_active <= 1'b1;
+            digit_start <= 1'b1;
         end
     end
 end

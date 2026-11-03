@@ -53,6 +53,7 @@ module tb_display_split_2px;
         .src_valid (src_valid),
         .src_vs    (src_vs),
         .src_rgb2  (src_rgb2),
+        .digit_mode(1'b0), .digit_valid(1'b0), .digit_vs(1'b0), .digit_mask2(2'b00),
         .in_valid  (in_valid),
         .in_hs     (in_hs),
         .in_vs     (in_vs),

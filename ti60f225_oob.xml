@@ -100,6 +100,11 @@
         <efx:design_file name="rtl_custom/shape_overlay_2px.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_fit.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_fit_draw_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/digit_capture_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/digit_match_7p2.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/digit_outline_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/digit_result_overlay_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/digit_result_control.v" version="default" library="default" />
         <efx:top_vhdl_arch name="" />
         <efx:msg_config name="" />
         <efx:partition_definitions name="" />

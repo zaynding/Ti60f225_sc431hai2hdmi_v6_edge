@@ -1,0 +1,12 @@
+{
+  "Screw": {
+    "bytes": 2073600,
+    "sha256": "be11b783468e8f14e78fe04423d557c5c0c812e08b802796300c7460e1b800f4",
+    "interior_sample_mae_vs_first": 23.78
+  },
+  "Caliper": {
+    "bytes": 2073600,
+    "sha256": "0a424089ebb8b6b166f9805dabf043b1629eb085f71585ec4297d38bcb9347a6",
+    "interior_sample_mae_vs_first": 10.769
+  }
+}

@@ -23,3 +23,6 @@ xsim.dir/
 Thumbs.db
 *.swp
 *.bak
+# Reproducible digit-card simulation inputs and generated work.
+sim/build/digits/
+sim/digits/vectors/
