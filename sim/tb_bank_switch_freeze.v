@@ -13,6 +13,8 @@ reg rst_n = 1'b0;
 reg freeze = 1'b0;
 reg [2:0] view_mode = 3'd0;
 reg snapshot_toggle = 1'b0;
+reg clear_saved_toggle = 1'b0;
+reg [3:0] preload_set = 4'b0000;
 reg wr_sw = 1'b0;
 reg rd_sw = 1'b0;
 
@@ -39,6 +41,8 @@ bank_switch #(
     .freeze        (freeze),
     .view_mode     (view_mode),
     .snapshot_toggle(snapshot_toggle),
+    .clear_saved_toggle(clear_saved_toggle),
+    .preload_set   (preload_set),
     .wr_sw         (wr_sw),
     .rd_sw         (rd_sw),
     .wr_bank       (wr_bank),
@@ -115,10 +119,22 @@ initial begin
 
     check_addr(BANK1_ADDR, "reset read bank");
 
-    capture_saved(SAVED0_ADDR);
-    capture_saved(SAVED1_ADDR);
+    // Demo loader fills slots 1 and 2 from outside: they become valid and later captures continue after them.
+    preload_set = 4'b0011;
+    repeat (3) @(posedge clk);
+    if (saved_valid !== 4'b0011) begin
+        $display("ERROR: preload saved_valid expected 0011, got %04b", saved_valid);
+        errors = errors + 1;
+    end
+    view_mode = 3'd2;
+    repeat (2) @(posedge clk);
+    check_addr(SAVED1_ADDR, "preloaded frame 2 read address");
+    view_mode = 3'd0;
+    repeat (2) @(posedge clk);
     capture_saved(SAVED2_ADDR);
     capture_saved(SAVED3_ADDR);
+    capture_saved(SAVED0_ADDR);
+    capture_saved(SAVED1_ADDR);
     if (saved_valid !== 4'b1111) begin
         $display("ERROR: saved_valid expected 1111, got %04b", saved_valid);
         errors = errors + 1;
@@ -143,10 +159,65 @@ initial begin
     repeat (2) @(posedge clk);
     check_addr(BANK1_ADDR, "return to live read address");
 
+    // Invalidate only 3/4 even while selected; next capture starts at 3.
+    view_mode = 3'd4;
+    @(negedge clk); clear_saved_toggle = ~clear_saved_toggle;
+    repeat (8) @(negedge clk);
+    if (saved_valid !== 4'b0011) $fatal(1, "clear must preserve slots 1/2 only");
+    check_addr(BANK1_ADDR, "deleted source falls back to live");
+    capture_saved(SAVED2_ADDR);
+    if (saved_valid !== 4'b0111) $fatal(1, "next capture must refill slot 3");
+    capture_saved(SAVED3_ADDR);
+    if (saved_valid !== 4'b1111) $fatal(1, "second capture must refill slot 4");
+
+    // Clear while a slot-3 write is active: don't redirect mid-frame or
+    // revalidate it at completion. Low slots remain usable throughout.
+    @(negedge clk); clear_saved_toggle = ~clear_saved_toggle;
+    repeat (8) @(negedge clk);
+    @(negedge clk); snapshot_toggle = ~snapshot_toggle;
+    repeat (8) @(negedge clk);
+    pulse_wr_sw();
+    repeat (3) @(negedge clk);
+    if (wr_start_addr !== SAVED2_ADDR) $fatal(1, "slot 3 write not active");
+    @(negedge clk); clear_saved_toggle = ~clear_saved_toggle;
+    repeat (8) @(negedge clk);
+    if (wr_start_addr !== SAVED2_ADDR) $fatal(1, "clear redirected an active write");
+    pulse_wr_sw();
+    repeat (3) @(negedge clk);
+    if (saved_valid !== 4'b0011) $fatal(1, "active write resurrected a deleted slot");
+    capture_saved(SAVED2_ADDR);
+    if (saved_valid !== 4'b0111) $fatal(1, "clear failed to rearm slot 3");
+
+    // Cancel a queued snapshot before a live-frame boundary.
+    @(negedge clk); snapshot_toggle = ~snapshot_toggle;
+    repeat (8) @(negedge clk);
+    @(negedge clk); clear_saved_toggle = ~clear_saved_toggle;
+    repeat (8) @(negedge clk);
+    pulse_wr_sw();
+    repeat (3) @(negedge clk);
+    if (dut.three_fb.snap_active || saved_valid !== 4'b0011)
+        $fatal(1, "clear failed to cancel queued capture");
+    capture_saved(SAVED2_ADDR);
+
+    // Clear arriving on the exact completion cycle must also win.
+    @(negedge clk); snapshot_toggle = ~snapshot_toggle;
+    repeat (8) @(negedge clk);
+    pulse_wr_sw();
+    repeat (3) @(negedge clk);
+    if (wr_start_addr !== SAVED3_ADDR) $fatal(1, "slot 4 write not active");
+    @(negedge clk); clear_saved_toggle = ~clear_saved_toggle;
+    repeat (2) @(negedge clk);
+    wr_sw = 1;
+    @(negedge clk); wr_sw = 0;
+    repeat (8) @(negedge clk);
+    if (saved_valid !== 4'b0011 || dut.three_fb.clear_pending)
+        $fatal(1, "simultaneous clear/completion left a valid slot or stuck pending");
+    capture_saved(SAVED2_ADDR);
+
     if (errors == 0) begin
         $display("PASS: bank_switch replay test passed");
     end else begin
-        $display("FAIL: %0d errors", errors);
+        $fatal(1, "FAIL: %0d errors", errors);
     end
     $finish;
 end

@@ -22,7 +22,10 @@ input 												rst_n,
 input 												freeze,
 input		[2:0]									view_mode,
 input												snapshot_toggle,
+input                                               clear_saved_toggle,
 output	wire	[3:0]								saved_valid,
+input												ext_hold,      // demo loader: stop writing camera frames (axi_clk domain)
+input		[3:0]									preload_set,   // demo loader: slots that now hold preloaded frames (axi_clk domain)
 
 input	wire								i_clk	,
 input	wire								i_vs, //active hgih
@@ -171,6 +174,19 @@ always @(posedge i_clk or negedge wr_clk_rst_n) begin
     end
 end
 
+reg hold_i_d0 = 1'b0;
+reg hold_i_d1 = 1'b0;
+always @(posedge i_clk or negedge wr_clk_rst_n) begin
+    if (!wr_clk_rst_n) begin
+        hold_i_d0 <= 1'b0;
+        hold_i_d1 <= 1'b0;
+    end else begin
+        hold_i_d0 <= ext_hold;
+        hold_i_d1 <= hold_i_d0;
+    end
+end
+wire freeze_wr = freeze_i_d1 | hold_i_d1;
+
 reg freeze_axi_d0 = 1'b0;
 reg freeze_axi_d1 = 1'b0;
 reg [2:0] view_mode_axi_d0 = 3'd0;
@@ -202,11 +218,11 @@ always @(posedge i_clk or negedge wr_clk_rst_n) begin
     if (!wr_clk_rst_n)
         capture_en <= 1'b0;
     else if (frame_start)
-        capture_en <= ~freeze_i_d1;
+        capture_en <= ~freeze_wr;
 end
 
 wire wr_fifo_wren_gated = wr_fifo_wren & capture_en;
-wire wr_start_gated     = frame_start & frame_stable & ~freeze_i_d1;
+wire wr_start_gated     = frame_start & frame_stable & ~freeze_wr;
 
 
 
@@ -244,6 +260,9 @@ ddr_buffer #(
 .WR_FIFO_DEPTH	( WR_FIFO_DEPTH		),    
 .RD_FIFO_DEPTH 	( RD_FIFO_DEPTH 	),
 .START_ADDR			( START_ADDR      ),
+.FB_NUM         ( FB_NUM          ),
+.MAX_VID_WIDTH  ( MAX_VID_WIDTH   ),
+.MAX_VID_HIGHT  ( MAX_VID_HIGHT   ),
 .I_VID_WIDTH    ( I_VID_WIDTH     ),
 .BURST_LEN      (BURST_LEN        )
 )u_ddr_buffer(
@@ -257,7 +276,9 @@ ddr_buffer #(
     .freeze           (freeze_axi_d1),
     .view_mode        (view_mode_axi_d1),
     .snapshot_toggle (snapshot_axi_d1),
+    .clear_saved_toggle(clear_saved_toggle), // synchronised by bank_switch
     .saved_valid      (saved_valid),
+    .preload_set      (preload_set),
     .wr_busrt_len     (ddr_frame_len ),//ddr address scope for one frame
     .rd_burst_len     (ddr_frame_len ),//ddr address scope for one frame
 

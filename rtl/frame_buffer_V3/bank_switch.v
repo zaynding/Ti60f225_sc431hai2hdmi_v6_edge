@@ -16,6 +16,8 @@ input	wire		rst_n,//!复位，低电平有效
 input	wire		freeze,//!hold the current read bank
 input	wire	[2:0]	view_mode,//!0=live, 1..4=saved frame
 input	wire			snapshot_toggle,//!toggle once when K3 is pressed
+input   wire            clear_saved_toggle,//!K3 long: invalidate slots 3/4
+input	wire	[3:0]	preload_set,//!slots filled from outside (demo loader), sticky
 
 input	wire		wr_sw,//!写bank切换请求信号,电平有效
 input	wire		rd_sw,//!读bank切换请求信号,电平有效
@@ -132,6 +134,11 @@ endfunction
 		reg        snap_tog_d0 = 1'b0;
 		reg        snap_tog_d1 = 1'b0;
 		reg        snap_tog_d2 = 1'b0;
+		(* async_reg = "true" *) reg [2:0] clear_tog_sync = 3'b000;
+		reg        clear_pending = 1'b0;
+		wire       clear_req_pulse = clear_tog_sync[2] ^ clear_tog_sync[1];
+		reg  [3:0] preload_d = 4'b0000;
+		wire [3:0] preload_new = preload_set & ~preload_d;
 		wire       snap_req_pulse;
 		wire [1:0] view_idx = view_mode[1:0] - 2'd1;
 
@@ -143,12 +150,16 @@ endfunction
 				snap_tog_d0 <= 1'b0;
 				snap_tog_d1 <= 1'b0;
 				snap_tog_d2 <= 1'b0;
+				clear_tog_sync <= 3'b000;
+				preload_d <= 4'b0000;
 			end else begin
 				wr_sw_d1 <= wr_sw;
 				rd_sw_d1 <= rd_sw;
 				snap_tog_d0 <= snapshot_toggle;
 				snap_tog_d1 <= snap_tog_d0;
 				snap_tog_d2 <= snap_tog_d1;
+				preload_d   <= preload_set;
+				clear_tog_sync <= {clear_tog_sync[1:0], clear_saved_toggle};
 			end
 		end
 		assign pos_wr_sw_en = {wr_sw_d1,wr_sw} == 2'b01;
@@ -199,16 +210,27 @@ endfunction
 				snap_wr_slot <= 2'd0;
 				snap_pending <= 1'b0;
 				snap_active <= 1'b0;
+				clear_pending <= 1'b0;
 			end else begin
-				if( snap_req_pulse && !snap_active && !snap_pending )
+				// Slots that were filled from outside become valid; K0-long snapshots then start after them.
+				if( |preload_new ) begin
+					saved_valid <= saved_valid | preload_new;
+					if( preload_set[1] )      snap_wr_slot <= 2'd2;
+					else if( preload_set[0] ) snap_wr_slot <= 2'd1;
+				end
+
+				if( snap_req_pulse && !snap_active && !snap_pending && !clear_pending && !clear_req_pulse )
 					snap_pending <= 1'b1;
 
 				if( pos_wr_sw_en ) begin
 					if( snap_active ) begin
 						// The saved frame is complete. Keep the live
 						// triple-buffer state untouched.
-						saved_valid[snap_wr_slot] <= 1'b1;
-						snap_wr_slot <= snap_wr_slot + 1'b1;
+						// Finish an in-flight write, but never resurrect a deleted slot.
+						if (!(snap_wr_slot[1] && (clear_pending || clear_req_pulse)))
+							saved_valid[snap_wr_slot] <= 1'b1;
+						snap_wr_slot <= clear_pending ? 2'd2 : snap_wr_slot + 1'b1;
+						clear_pending <= 1'b0;
 						snap_active <= 1'b0;
 					end else begin
 						// A normal live frame completed. Update the live
@@ -228,7 +250,7 @@ endfunction
 
 						// If K3 was pressed, the next frame is written to
 						// the dedicated saved-frame region.
-						if( snap_pending ) begin
+						if( snap_pending && !clear_req_pulse ) begin
 							snap_pending <= 1'b0;
 							snap_active <= 1'b1;
 						end
@@ -249,6 +271,18 @@ endfunction
 						dirt_en <= dirt_en;
 					end
 					clean_en <= 1'b0;
+				end
+				// Clear has priority over preload/completion in this cycle. Keep
+				// the active write address unchanged until that write completes.
+				if (clear_req_pulse) begin
+					saved_valid[3:2] <= 2'b00;
+					snap_pending <= 1'b0;
+					if (snap_active && !pos_wr_sw_en)
+						clear_pending <= 1'b1;
+					else begin
+						snap_wr_slot <= 2'd2;
+						clear_pending <= 1'b0;
+					end
 				end
 			end
 		end

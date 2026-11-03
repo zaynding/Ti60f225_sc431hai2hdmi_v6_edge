@@ -85,6 +85,7 @@
         <efx:design_file name="rtl_custom/edge_algo_2px.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/key_sl.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/ui_ctrl.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/jtag_demo_loader.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/menu_font_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/menu_text_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/menu_bar_2px.v" version="default" library="default" />

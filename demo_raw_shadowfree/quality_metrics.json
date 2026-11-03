@@ -1,0 +1,18 @@
+{
+  "original": {
+    "background_canny_pixels": 101,
+    "background_stddev": 11.134,
+    "preview_size": [
+      960,
+      1080
+    ]
+  },
+  "shadowfree": {
+    "background_canny_pixels": 0,
+    "background_stddev": 0.572,
+    "preview_size": [
+      960,
+      1080
+    ]
+  }
+}

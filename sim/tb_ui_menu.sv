@@ -9,16 +9,16 @@ generate for (g=0; g<4; g=g+1) begin : k
     key_sl #(.DEBOUNCE_CYCLES(20), .LONG_CYCLES(400)) u (.clk(clk), .rst_n(rst_n), .key_n(key_n[g]), .short_p(sp[g]), .long_p(lp[g]));
 end endgenerate
 reg [3:0] valid = 4'b0000;
-wire freeze, snap, shape_on, thr_auto, fps_on; wire [1:0] algo; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
+wire freeze, snap, clear_saved, shape_on, thr_auto, fps_on; wire [1:0] algo; wire [2:0] view, sel, thr, src, flash; wire [11:0] thr12; wire [1:0] disp;
 ui_ctrl #(.ROT_CYCLES(300)) u_ui (.clk(clk), .rst_n(rst_n), .k0_s(sp[0]), .k0_l(lp[0]), .k1_s(sp[1]), .k1_l(lp[1]), .k2_s(sp[2]), .k2_l(lp[2]),
-    .k3_s(sp[3]), .k3_l(lp[3]), .saved_valid(valid), .freeze(freeze), .view_mode(view), .snapshot_toggle(snap), .sel(sel), .thr_idx(thr),
+    .k3_s(sp[3]), .k3_l(lp[3]), .saved_valid(valid), .ext_slot1(1'b0), .clear_saved_toggle(clear_saved), .freeze(freeze), .view_mode(view), .snapshot_toggle(snap), .sel(sel), .thr_idx(thr),
     .thr12(thr12), .shape_on(shape_on), .fps_on(fps_on), .algo(algo), .thr_auto(thr_auto), .disp_mode(disp), .src_mode(src), .flash(flash));
 task press(input integer k, input integer len);
     begin key_n[k] = 0; repeat(len) @(negedge clk); key_n[k] = 1; repeat(60) @(negedge clk); end
 endtask
 integer errs = 0;
 task check(input cond, input [255:0] msg); begin if (!cond) begin errs = errs + 1; $display("FAIL: %0s", msg); end end endtask
-reg snap0;
+reg snap0, clear0;
 initial begin
     repeat(5) @(negedge clk); rst_n = 1; repeat(5) @(negedge clk);
     // K1: 6 steps and wrap
@@ -30,8 +30,8 @@ initial begin
     press(0, 60); check(freeze && src == 1, "freeze on"); press(0, 60); check(!freeze && src == 0, "live");
     // K2 select, K3 change
     press(2, 60); check(sel == 1, "sel 1"); press(2, 60); check(sel == 2, "sel 2");
-    press(3, 60); check(!shape_on, "shape off"); press(3, 700); check(shape_on, "shape default");
-    press(2, 60); check(algo == 1, "algo default canny"); press(3, 60); check(algo == 2, "algo compare"); press(3, 60); check(algo == 0, "algo sobel"); press(3, 60); check(algo == 1, "algo canny"); press(3, 60); press(3, 700); check(algo == 1, "algo default");
+    press(3, 60); check(!shape_on, "shape off"); clear0 = clear_saved; press(3, 700); check(!shape_on && clear_saved != clear0, "long K3 clears instead of shape reset");
+    press(2, 60); check(algo == 1, "algo default canny"); press(3, 60); check(algo == 2, "algo compare"); press(3, 60); check(algo == 0, "algo sobel"); press(3, 60); check(algo == 1, "algo canny"); press(3, 60); press(3, 700); check(algo == 2, "long K3 preserves algorithm");
     press(2, 60); press(3, 60); check(disp == 1, "disp 1"); press(3, 60); check(disp == 2, "disp 2"); press(3, 60); check(disp == 0, "disp 0");
     press(2, 700); check(sel == 3, "sel back");
     // capture: K0 long
@@ -39,7 +39,7 @@ initial begin
     valid = 4'b0101; repeat(10) @(negedge clk); check(flash == 1, "flash slot");
     // frame-rate option: item 5
     while (sel != 5) press(2, 60);
-    check(!fps_on, "fps default off"); press(3, 60); check(fps_on, "fps on"); press(3, 60); check(!fps_on, "fps off"); press(3, 60); press(3, 700); check(!fps_on, "fps default");
+    check(!fps_on, "fps default off"); press(3, 60); check(fps_on, "fps on"); press(3, 60); check(!fps_on, "fps off"); press(3, 60); press(3, 700); check(fps_on, "long K3 preserves fps setting");
     press(2, 60); check(sel == 0, "sel wraps after item 5");
     // frame source cycle: sel 0 -> K3: live -> freeze -> slot1 -> slot3 -> rotate
     press(2, 60); press(2, 60); press(2, 60); check(sel == 3, "three steps from item 0");
@@ -49,6 +49,19 @@ initial begin
     repeat(350) @(negedge clk); check(view == 1 || view == 3 || view == 0, "rotate view");
     repeat(350) @(negedge clk); repeat(350) @(negedge clk);
     press(3, 60); check(src == 0, "back to live");
+    // A long hold is a single clear, and release must not generate a short press.
+    valid = 4'b1111;
+    press(3, 60); press(3, 60); press(3, 60); press(3, 60);
+    check(src == 4, "select slot 3");
+    clear0 = clear_saved; snap0 = snap;
+    press(3, 1600);
+    check(clear_saved != clear0 && snap == snap0, "one clear toggle, no capture on long hold");
+    check(src == 2 && view == 1, "deleted slot returns to slot 1, no short release");
+    valid = 4'b0011;
+    press(3, 60); check(src == 3, "slot 2 retained");
+    press(3, 60); check(src == 6, "deleted slots skipped");
+    repeat(1400) @(negedge clk);
+    check(view <= 2, "rotation skips deleted slots");
     if (errs == 0) $display("PASS: key short/long press, thresholds, freeze, menu select, item change, capture, slot skip, rotation");
     else $fatal(1, "ui errors %0d", errs);
     $finish;

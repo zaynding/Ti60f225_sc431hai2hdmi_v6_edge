@@ -1,0 +1,14 @@
+{
+  "Screw": {
+    "raw_bytes": 2073600,
+    "raw_sha256": "51ab9b7e1dc327e75f3dd0a5d77a8c4ca41c71a10798d25d356991bb174307f1",
+    "sampled_background_edge_pixels": 0,
+    "sampled_background_mean": 150.21
+  },
+  "Caliper": {
+    "raw_bytes": 2073600,
+    "raw_sha256": "3787f3d1b0e6e8cb1abbadba23104e00550a48c5b97ea027d5584cb5fe7be5f3",
+    "sampled_background_edge_pixels": 0,
+    "sampled_background_mean": 147.56
+  }
+}

@@ -611,9 +611,37 @@ wire [7:0]    ch0_b;
 wire ch0_vs;
 wire ch0_hs;
 wire ch0_de;
+wire [5:0]   fbm_awid;
+wire [31:0]  fbm_awaddr;
+wire [7:0]   fbm_awlen;
+wire [2:0]   fbm_awsize;
+wire [1:0]   fbm_awburst;
+wire [2:0]   fbm_awprot;
+wire [3:0]   fbm_awcache;
+wire         fbm_awlock;
+wire         fbm_awvalid;
+wire         fbm_awready;
+wire [127:0] fbm_wdata;
+wire [15:0]  fbm_wstrb;
+wire         fbm_wlast;
+wire         fbm_wvalid;
+wire         fbm_wready;
+wire [5:0]   fbm_bid;
+wire         fbm_bvalid;
+wire         fbm_bready;
+
+wire         ld_grant;
+wire         ld_hold_req;
+wire [3:0]   ld_preload_mask;
+wire         ld_preload_tog;
+wire [31:0]  ld_awaddr;
+wire         ld_awvalid;
+wire [127:0] ld_wdata;
+wire         ld_wvalid;
 wire frame_freeze;
 wire [2:0] view_mode;
 wire       snapshot_toggle;
+wire       clear_saved_toggle;
 wire [3:0] saved_valid;
 // IMX219
   frame_buffer #(
@@ -636,7 +664,10 @@ wire [3:0] saved_valid;
        .freeze          (frame_freeze       ),
        .view_mode        (view_mode          ),
        .snapshot_toggle (snapshot_toggle    ),
+       .clear_saved_toggle(clear_saved_toggle),
        .saved_valid      (saved_valid         ),
+       .ext_hold         (ld_hold_req        ),
+       .preload_set      (ld_preload_mask    ),
 
 /*i*/.i_clk			(i_mipi_rx_pclk      ),
 /*i*/.i_vs			(w_mipi_rx_vs	),
@@ -658,16 +689,16 @@ wire [3:0] saved_valid;
 /*i*/.V_VALID 	 	  (MAX_VRES     ),//		
 /*i*/.V_BACK_PORCH	(VBP		),//		
 
-       .awid			(s_axi_awid	),      
-       .awaddr		(s_axi_awaddr	),
-       .awlen			(s_axi_awlen	),
-       .awsize		(s_axi_awsize	),
-       .awburst		(s_axi_awburst),
-       .awprot    (s_axi_awprot ),
-       .awcache   (s_axi_awcache),
-       .awlock		(s_axi_awlock	),
-       .awvalid		(s_axi_awvalid),
-       .awready		(s_axi_awready),
+       .awid			(fbm_awid),      
+       .awaddr		(fbm_awaddr),
+       .awlen			(fbm_awlen),
+       .awsize		(fbm_awsize),
+       .awburst		(fbm_awburst),
+       .awprot    (fbm_awprot),
+       .awcache   (fbm_awcache),
+       .awlock		(fbm_awlock),
+       .awvalid		(fbm_awvalid),
+       .awready		(fbm_awready),
 
        .arid			(s_axi_arid	  ),
        .araddr		(s_axi_araddr	),
@@ -681,11 +712,11 @@ wire [3:0] saved_valid;
        .arvalid		(s_axi_arvalid),
        .arready		(s_axi_arready),
 
-       .wdata			(s_axi_wdata	),
-       .wstrb			(s_axi_wstrb	),
-       .wlast			(s_axi_wlast	),
-       .wvalid		(s_axi_wvalid	),
-       .wready		(s_axi_wready	),
+       .wdata			(fbm_wdata),
+       .wstrb			(fbm_wstrb),
+       .wlast			(fbm_wlast),
+       .wvalid		(fbm_wvalid),
+       .wready		(fbm_wready),
 
 
        .rid			  (s_axi_rid	),
@@ -695,10 +726,32 @@ wire [3:0] saved_valid;
        .rready		(s_axi_rready	),
        .rresp			(s_axi_rresp	),
 
-       .bid			  (s_axi_bid	),
-       .bvalid		(s_axi_bvalid	),
-       .bready	  (s_axi_bready	)
+       .bid			  (fbm_bid),
+       .bvalid		(fbm_bvalid),
+       .bready	  (fbm_bready)
 );
+
+// ---- DDR write-channel mux: camera frame_buffer <-> JTAG demo loader -----------------------------------
+// The loader only owns the channel while the camera write path has been frozen and has gone quiet.
+assign s_axi_awid    = ld_grant ? {AXI_ID_WIDTH{1'b0}} : fbm_awid[AXI_ID_WIDTH-1:0];
+assign s_axi_awaddr  = ld_grant ? ld_awaddr  : fbm_awaddr;
+assign s_axi_awlen   = ld_grant ? 8'd0       : fbm_awlen;
+assign s_axi_awsize  = ld_grant ? 3'd4       : fbm_awsize;
+assign s_axi_awburst = ld_grant ? 2'b01      : fbm_awburst;
+assign s_axi_awlock  = ld_grant ? 1'b0       : fbm_awlock;
+assign s_axi_awcache = ld_grant ? 4'd3       : fbm_awcache;
+assign s_axi_awprot  = ld_grant ? 3'd2       : fbm_awprot;
+assign s_axi_awvalid = ld_grant ? ld_awvalid : fbm_awvalid;
+assign s_axi_wdata   = ld_grant ? ld_wdata   : fbm_wdata;
+assign s_axi_wstrb   = ld_grant ? {(AXI_DATA_WIDTH/8){1'b1}} : fbm_wstrb;
+assign s_axi_wlast   = ld_grant ? 1'b1       : fbm_wlast;
+assign s_axi_wvalid  = ld_grant ? ld_wvalid  : fbm_wvalid;
+assign s_axi_bready  = ld_grant ? 1'b1       : fbm_bready;
+assign fbm_awready   = s_axi_awready & ~ld_grant;
+assign fbm_wready    = s_axi_wready  & ~ld_grant;
+assign fbm_bid       = {{(6-AXI_ID_WIDTH){1'b0}}, s_axi_bid};
+assign fbm_bvalid    = s_axi_bvalid  & ~ld_grant;
+wire   fb_wr_busy    = fbm_awvalid | fbm_wvalid;
 
 ddr3_top                 u_ddr3_top
 (
@@ -867,14 +920,23 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
     end
 end
 
+// preload-finished toggle (core_clk) -> one pulse in the video clock domain
+reg [2:0] pl_tog_s;
+always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
+    if (!vid_rst_n) pl_tog_s <= 3'b000;
+    else            pl_tog_s <= {pl_tog_s[1:0], ld_preload_tog};
+end
+wire ui_ext_slot1 = pl_tog_s[2] ^ pl_tog_s[1];
+
 wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
 wire       ui_shape_on, ui_fps_on;
 wire [1:0] ui_disp_mode;
 ui_ctrl u_ui_ctrl (
     .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
     .k0_s(k0_s), .k0_l(k0_l), .k1_s(k1_s), .k1_l(k1_l), .k2_s(k2_s), .k2_l(k2_l), .k3_s(k3_s), .k3_l(k3_l),
-    .saved_valid(saved_valid_sync),
+    .saved_valid(saved_valid_sync), .ext_slot1(ui_ext_slot1),
     .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
+    .clear_saved_toggle(clear_saved_toggle),
     .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
     .shape_on(ui_shape_on), .fps_on(ui_fps_on), .algo(ui_algo), .thr_auto(ui_thr_auto), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
@@ -1374,6 +1436,8 @@ assign tmds_tx_data2_TX_DATA = ~tmds_data2;
 // Debug (LA/VIO) core removed to save block RAM; set DEBUG_CORE=1 and restore the <efx:debugger> section to re-enable.
 localparam DEBUG_CORE = 0;
 generate if (DEBUG_CORE) begin : g_dbg
+    assign ld_grant = 1'b0; assign ld_hold_req = 1'b0; assign ld_preload_mask = 4'd0; assign ld_preload_tog = 1'b0;
+    assign ld_awaddr = 32'd0; assign ld_awvalid = 1'b0; assign ld_wdata = 128'd0; assign ld_wvalid = 1'b0;
 debug_edb_top debug_edb_top_inst (
     .bscan_CAPTURE      ( jtag_inst1_CAPTURE  ),
     .bscan_DRCK         ( jtag_inst1_DRCK     ),
@@ -1399,7 +1463,25 @@ debug_edb_top debug_edb_top_inst (
     .la0_cal_done       ( cal_done            )
 );
 end else begin : g_nodbg
-    assign jtag_inst1_TDO = jtag_inst1_TDI ^ jtag_inst1_TCK ^ jtag_inst1_TMS ^ jtag_inst1_SEL ^ jtag_inst1_SHIFT ^ jtag_inst1_UPDATE ^ jtag_inst1_CAPTURE ^ jtag_inst1_DRCK ^ jtag_inst1_RESET ^ jtag_inst1_RUNTEST;
+    // JTAG USER1 is used to preload the two demo pictures into saved-frame slots 1 and 2 (tools/jtag_load_demo.py)
+    wire jtag_tck_g;
+    EFX_GBUFCE #(.CE_POLARITY(1'b1)) u_jtag_tck_gbuf (.CE(1'b1), .I(jtag_inst1_TCK), .O(jtag_tck_g));
+    reg [1:0] ld_rst_s = 2'b00;
+    always @(posedge core_clk or negedge vid_rst_n) begin
+        if (!vid_rst_n) ld_rst_s <= 2'b00;
+        else            ld_rst_s <= {ld_rst_s[0], cal_done};
+    end
+    wire ld_tdo;
+    jtag_demo_loader u_jtag_demo_loader (
+        .tck(jtag_tck_g), .tdi(jtag_inst1_TDI), .tdo(ld_tdo), .sel(jtag_inst1_SEL),
+        .shift(jtag_inst1_SHIFT), .capture(jtag_inst1_CAPTURE), .update(jtag_inst1_UPDATE),
+        .clk(core_clk), .rst_n(ld_rst_s[1]),
+        .fb_busy(fb_wr_busy), .hold_req(ld_hold_req), .grant(ld_grant),
+        .awaddr(ld_awaddr), .awvalid(ld_awvalid), .awready(s_axi_awready),
+        .wdata(ld_wdata), .wvalid(ld_wvalid), .wready(s_axi_wready),
+        .bvalid(s_axi_bvalid & ld_grant), .bresp(s_axi_bresp),
+        .preload_mask(ld_preload_mask), .preload_tog(ld_preload_tog));
+    assign jtag_inst1_TDO = ld_tdo;
 end endgenerate
 
 endmodule

@@ -25,7 +25,9 @@ input											wr_start, // pulse signal
 input											freeze,
 input		[2:0]								view_mode,
 input											snapshot_toggle,
+input                                               clear_saved_toggle,
 output	wire[3:0]								saved_valid,
+input		[3:0]								preload_set,
 
 // input		[AXI_ADDR_WIDTH-1:0]				start_wr_addr,
 // input		[AXI_ADDR_WIDTH-1:0]				start_rd_addr,
@@ -234,6 +236,8 @@ bank_switch #(
 /*i*/.freeze			(freeze),
 /*i*/.view_mode		(view_mode),
 /*i*/.snapshot_toggle(snapshot_toggle),
+/*i*/.clear_saved_toggle(clear_saved_toggle),
+/*i*/.preload_set(preload_set),
                 
 /*o*/.wr_bank		(wr_bank	),
 /*o*/.rd_bank		(rd_bank	),

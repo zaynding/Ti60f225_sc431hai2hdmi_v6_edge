@@ -21,10 +21,13 @@ create_clock -period 200.000 -name CLK_5M [get_ports {CLK_5M}]
 
 
 create_clock -period 10.000 -name i_cam_ck_CLKOUT [get_ports {i_cam_ck_CLKOUT}]
+# JTAG USER1 TCK (demo-frame loader, tools/jtag_load_demo.py); FTDI JTAG runs at <= 30 MHz
+create_clock -period 33.333 -name jtag_inst1_TCK [get_ports {jtag_inst1_TCK}]
 
 set_clock_groups -exclusive  -group {i_mipi_rx_pclk} -group {jtag_inst1_TCK}
 set_clock_groups -exclusive -group {core_clk} -group {tx_cal_clk} -group {i_mipi_tx_pclk} -group {vid_clk_dvi2} -group {CLK_5M} -group {i_mipi_rx_pclk} -group {sdram_clk} -group {rx_cal_clk}
 set_clock_groups -exclusive -group {i_mipi_tx_pclk}    -group {i_mipi_rx_pclk}
+set_clock_groups -exclusive -group {jtag_inst1_TCK} -group {core_clk} -group {vid_clk_dvi2}
 
 #set_clock_groups -exclusive -group {i_sysclk} -group {jtag_inst1_TCK}                       2.500           -0.197           (R-R)
 

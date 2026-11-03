@@ -4,7 +4,7 @@
 //
 //   K1 short: next threshold step (6 manual steps, then AUTO)   long: step 1
 //   K2 short: next menu item                    long: previous item
-//   K3 short: change the highlighted item       long: reset that item to its default
+//   K3 short: change the highlighted item       long: clear saved frames 3/4 (any menu item)
 //   K0 short: freeze / back to live             long: capture a snapshot
 //   menu items: 0 frame source (live/freeze/slot1..4/rotate)  1 capture  2 shape on/off  3 median on/off
 //               4 display mode (split / original / edges)  5 frame-rate read-out on/off
@@ -15,9 +15,11 @@ module ui_ctrl #(
     input  wire clk, rst_n,
     input  wire k0_s, k0_l, k1_s, k1_l, k2_s, k2_l, k3_s, k3_l,
     input  wire [3:0] saved_valid,                   // already synchronised to clk
+    input  wire       ext_slot1,                     // one-clk pulse: demo frames loaded -> show slot 1
     output wire       freeze,
     output wire [2:0] view_mode,
     output reg        snapshot_toggle,
+    output reg        clear_saved_toggle,
     output reg  [2:0] sel,
     output reg  [2:0] thr_idx,
     output reg  [11:0] thr12,
@@ -70,7 +72,7 @@ wire cap_req = k0_l || (k3_s && sel == 3'd1);
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        snapshot_toggle<=0; sel<=0; thr_idx<=3'd2; shape_on<=1; fps_on<=0; algo<=2'd1; disp_mode<=0; src_mode<=0; flash<=0;
+        snapshot_toggle<=0; clear_saved_toggle<=0; sel<=0; thr_idx<=3'd2; shape_on<=1; fps_on<=0; algo<=2'd1; disp_mode<=0; src_mode<=0; flash<=0;
         rot_idx<=0; rot_cnt<=0; flash_cnt<=0; valid_d<=0;
     end else begin
         valid_d <= saved_valid;
@@ -80,20 +82,13 @@ always @(posedge clk or negedge rst_n) begin
         if (k2_l) sel <= (sel == 3'd0) ? 3'd5 : sel - 1'b1;
         if (k0_s) src_mode <= (src_mode == 3'd0) ? 3'd1 : 3'd0;
         if (cap_req) snapshot_toggle <= ~snapshot_toggle;
+        if (ext_slot1) src_mode <= 3'd2;                              // later assignments of the same cycle (K3) still win
         if (k3_s) case (sel)
             3'd0: src_mode  <= next_src(src_mode, saved_valid);
             3'd2: shape_on  <= ~shape_on;
             3'd3: algo <= (algo == 2'd2) ? 2'd0 : algo + 1'b1;
             3'd4: disp_mode <= (disp_mode == 2'd2) ? 2'd0 : disp_mode + 1'b1;
             3'd5: fps_on    <= ~fps_on;
-            default: begin end
-        endcase
-        if (k3_l) case (sel)
-            3'd0: src_mode <= 3'd0;
-            3'd2: shape_on <= 1'b1;
-            3'd3: algo <= 2'd1;
-            3'd4: disp_mode <= 2'd0;
-            3'd5: fps_on    <= 1'b0;
             default: begin end
         endcase
         // rotation timer
@@ -106,6 +101,16 @@ always @(posedge clk or negedge rst_n) begin
         end else if (flash != 3'd0) begin
             if (flash_cnt == ROT_CYCLES - 1) begin flash <= 3'd0; flash_cnt <= 0; end
             else flash_cnt <= flash_cnt + 1'b1;
+        end
+        // A long confirmation press is global, independent of menu selection.
+        // Leave a deleted source immediately; rotation can continue on 0/1/2.
+        if (k3_l) begin
+            clear_saved_toggle <= ~clear_saved_toggle;
+            if (src_mode == 3'd4 || src_mode == 3'd5)
+                src_mode <= saved_valid[0] ? 3'd2 : saved_valid[1] ? 3'd3 : 3'd0;
+            if (rot_idx >= 3'd3) rot_idx <= 3'd0;
+            flash <= 0;
+            flash_cnt <= 0;
         end
     end
 end
