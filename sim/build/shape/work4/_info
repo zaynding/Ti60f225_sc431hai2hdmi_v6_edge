@@ -1,0 +1,263 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
+vseq_div
+Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
+Z2 !s110 1793685454
+!i10b 1
+!s100 _GkVgH1USm3HH=Tm7caMP2
+I@:XL8>HiOFQLKPc;Bl9gk1
+Z3 V`JN@9S9cnhjKRR_L]QIcM3
+Z4 !s105 shape_arith_v_unit
+S1
+R0
+Z5 w1793684892
+Z6 8rtl_custom/shape_arith.v
+Z7 Frtl_custom/shape_arith.v
+L0 31
+Z8 OV;L;10.3c;59
+r1
+!s85 0
+31
+Z9 !s108 1793685454.339000
+Z10 !s107 sim/tb_fit_chain.sv|rtl_custom/shape_fit_draw_2px.v|rtl_custom/shape_track.v|rtl_custom/shape_fit.v|rtl_custom/shape_ccl.v|rtl_custom/shape_pool.v|rtl_custom/shape_classify.v|rtl_custom/shape_arith.v|rtl/simple_dual_port_ram.v|
+Z11 !s90 -sv|-work|sim/build/shape/work4|rtl/simple_dual_port_ram.v|rtl_custom/shape_arith.v|rtl_custom/shape_classify.v|rtl_custom/shape_pool.v|rtl_custom/shape_ccl.v|rtl_custom/shape_fit.v|rtl_custom/shape_track.v|rtl_custom/shape_fit_draw_2px.v|sim/tb_fit_chain.sv|
+!i113 1
+Z12 o-sv -work sim/build/shape/work4
+vseq_mul
+R1
+R2
+!i10b 1
+!s100 BmmUnBC:XiRJnVb[H746N2
+I`SC@nT4P=oR=TdGj?4W=83
+R3
+R4
+S1
+R0
+R5
+R6
+R7
+L0 5
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vseq_sqrt
+R1
+R2
+!i10b 1
+!s100 gnFL3cMj2[9;AFXa3NmlB0
+Id<KIJ[Jk<]cn35nfI_^@Z3
+R3
+R4
+S1
+R0
+R5
+R6
+R7
+L0 62
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_ccl
+R1
+R2
+!i10b 1
+!s100 0nS?3X@F^]f=PB_zbh[fh1
+IP@P>?JmGznKD3VWOg8AiZ3
+R3
+!s105 shape_ccl_v_unit
+S1
+R0
+w1793684857
+8rtl_custom/shape_ccl.v
+Frtl_custom/shape_ccl.v
+L0 13
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_classify
+R1
+R2
+!i10b 1
+!s100 _T]Hhf_oDJTXOL?E_=z_>2
+IajQ>^KPD<F5;om3ZVn0?I0
+R3
+!s105 shape_classify_v_unit
+S1
+R0
+w1793684873
+8rtl_custom/shape_classify.v
+Frtl_custom/shape_classify.v
+L0 17
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_fit
+R1
+R2
+!i10b 1
+!s100 QeNhKYTEE3bP7Xdh_N@aV1
+IfIlzJ`6BHfTJ;iHM`5YNf0
+R3
+!s105 shape_fit_v_unit
+S1
+R0
+w1793685247
+8rtl_custom/shape_fit.v
+Frtl_custom/shape_fit.v
+L0 20
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_fit_draw_2px
+R1
+R2
+!i10b 1
+!s100 Ve2>DBLAM94h326CS@4OV2
+Iclg9T:4=71l5Zoa=cDkI91
+R3
+!s105 shape_fit_draw_2px_v_unit
+S1
+R0
+w1793685380
+8rtl_custom/shape_fit_draw_2px.v
+Frtl_custom/shape_fit_draw_2px.v
+Z13 L0 14
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_pool
+R1
+R2
+!i10b 1
+!s100 @`J@4]KEJDUO>na^^>hDQ2
+I=?AObLN_[3CE2RBRf<UAg0
+R3
+!s105 shape_pool_v_unit
+S1
+R0
+w1793641931
+8rtl_custom/shape_pool.v
+Frtl_custom/shape_pool.v
+L0 11
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vshape_track
+R1
+R2
+!i10b 1
+!s100 3DT_9K?bYTKA=D68^O1>S2
+I>1fBF[j26ZOeGR<nYPJg`2
+R3
+!s105 shape_track_v_unit
+S1
+R0
+w1793685294
+8rtl_custom/shape_track.v
+Frtl_custom/shape_track.v
+L0 15
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vsimple_dual_port_ram
+R1
+R2
+!i10b 1
+!s100 OHe`Q9JO;oR02Z>B]J5V`1
+IN8`=57H6XL2eeogjK`]RG1
+R3
+!s105 simple_dual_port_ram_v_unit
+S1
+R0
+w1778135257
+8rtl/simple_dual_port_ram.v
+Frtl/simple_dual_port_ram.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12
+vtb_fit_chain
+R1
+R2
+!i10b 1
+!s100 HJ@0UD[G3okD2c?dL49Zh0
+IMh19FIGL]FFeUFo=zd?Ue3
+R3
+!s105 tb_fit_chain_sv_unit
+S1
+R0
+w1793685454
+8sim/tb_fit_chain.sv
+Fsim/tb_fit_chain.sv
+L0 3
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 1
+R12

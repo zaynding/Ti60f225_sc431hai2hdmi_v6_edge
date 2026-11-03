@@ -868,7 +868,7 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
 end
 
 wire [2:0] ui_sel, ui_thr_idx, ui_src_mode, ui_flash;
-wire       ui_shape_on;
+wire       ui_shape_on, ui_fps_on;
 wire [1:0] ui_disp_mode;
 ui_ctrl u_ui_ctrl (
     .clk(vid_clk_dvi2), .rst_n(vid_rst_n),
@@ -876,7 +876,7 @@ ui_ctrl u_ui_ctrl (
     .saved_valid(saved_valid_sync),
     .freeze(frame_freeze), .view_mode(view_mode), .snapshot_toggle(snapshot_toggle),
     .sel(ui_sel), .thr_idx(ui_thr_idx), .thr12(edge_threshold_12),
-    .shape_on(ui_shape_on), .algo(ui_algo), .thr_auto(ui_thr_auto), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
+    .shape_on(ui_shape_on), .fps_on(ui_fps_on), .algo(ui_algo), .thr_auto(ui_thr_auto), .disp_mode(ui_disp_mode), .src_mode(ui_src_mode), .flash(ui_flash)
 );
 
 // apply key changes only at the start of a frame
@@ -891,9 +891,10 @@ always @(posedge vid_clk_dvi2 or negedge vid_rst_n) begin
     else begin
         vs_key_d <= rgb_vs;
 
-        if (vs_key_rise)
+        if (vs_key_rise) begin
             disp_threshold     <= ui_thr_auto ? auto_th_main : edge_threshold_12;
             disp_threshold_raw <= ui_thr_auto ? auto_th_raw  : edge_threshold_12;
+        end
     end
 end
 
@@ -1011,6 +1012,8 @@ despeckle_2px #(
 wire        split_valid, split_hs, split_vs;
 wire [47:0] split_rgb2;
 
+wire [2:0] st_vis;  wire [8:0] st_cls;  wire [23:0] st_x0, st_x1;  wire [26:0] st_y0, st_y1;  wire [971:0] st_par;
+
 display_split_2px #(
     .PAIR_COUNT  (960),
     .LINE_COUNT  (1080),
@@ -1023,6 +1026,9 @@ display_split_2px #(
     .show_red  (ui_disp_mode != 2'd1),
     .show_color(ui_disp_mode != 2'd2),
     .show_edge (ui_disp_mode != 2'd1),
+    .sup_en    (ui_shape_on),
+    .sup_vis   (st_vis),
+    .sup_xmin  (st_x0), .sup_xmax(st_x1), .sup_ymin(st_y0), .sup_ymax(st_y1),
     .cmp_mode  (ui_algo == 2'd2),
     .s_edge0   (desp_s_edge2[0]),
     .s_edge1   (desp_s_edge2[1]),
@@ -1051,30 +1057,54 @@ wire [47:0] shp_rgb2;
 wire        sp_valid, sp_bit, sp_fs;
 shape_pool u_shape_pool (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(desp_valid), .in_vs(desp_vs),
     .in_edge2(desp_edge2), .p_valid(sp_valid), .p_bit(sp_bit), .p_frame_start(sp_fs));
-wire        sf_valid, sf_done;  wire [195:0] sf_rec;  wire [15:0] sf_ovf, sf_overrun;
+wire        sf_valid, sf_done;  wire [331:0] sf_rec;  wire [15:0] sf_ovf, sf_overrun;
 // shapes whose bounding box is smaller than 1/12 of the displayed crop (BMIN = 5400 of 64800 cells) are ignored
 shape_ccl #(.MMIN(600), .BMIN(5400)) u_shape_ccl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .p_valid(sp_valid), .p_bit(sp_bit),
     .p_frame_start(sp_fs), .fin_valid(sf_valid), .fin_rec(sf_rec), .frame_done(sf_done), .ovf_count(sf_ovf), .overrun_count(sf_overrun));
 wire        sc_valid;  wire [2:0] sc_class;  wire [7:0] sc_x0, sc_x1;  wire [8:0] sc_y0, sc_y1;  wire [31:0] sc_i1, sc_drop;  wire sc_el;
+wire [331:0] sc_rec;  wire [31:0] sc_vxx, sc_vyy, sc_vxy;  wire sc_vneg;  wire [63:0] sc_dd;
 shape_classify u_shape_cls (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(sf_valid), .in_rec(sf_rec), .out_valid(sc_valid),
     .out_class(sc_class), .out_xmin(sc_x0), .out_xmax(sc_x1), .out_ymin(sc_y0), .out_ymax(sc_y1), .out_i1(sc_i1),
-    .out_elong(sc_el), .drop_count(sc_drop));
-wire [3:0] st_vis;  wire [11:0] st_cls;  wire [31:0] st_x0, st_x1;  wire [35:0] st_y0, st_y1;
-shape_track #(.NT(4)) u_shape_trk (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .frame_start(sp_fs),
-    .det_valid(sc_valid && sc_class != 3'd0), .det_class(sc_class), .det_xmin(sc_x0), .det_xmax(sc_x1),
-    .det_ymin(sc_y0), .det_ymax(sc_y1), .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1),
-    .trk_ymin(st_y0), .trk_ymax(st_y1));
-shape_overlay_2px #(.NT(4), .PAIR_COUNT(960)) u_shape_ovl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on),
+    .out_elong(sc_el), .drop_count(sc_drop),
+    .out_rec(sc_rec), .out_vxx(sc_vxx), .out_vyy(sc_vyy), .out_vxy(sc_vxy), .out_vxy_neg(sc_vneg), .out_dd(sc_dd));
+// ideal-outline fit of the classified region (ellipse / rotated rectangle / triangle)
+wire        sfit_valid;  wire [2:0] sfit_kind;  wire [323:0] sfit_par;  wire [7:0] sfit_x0, sfit_x1;  wire [8:0] sfit_y0, sfit_y1;  wire [31:0] sfit_drop;
+shape_fit u_shape_fit (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .in_valid(sc_valid), .in_class(sc_class), .in_rec(sc_rec),
+    .in_vxx(sc_vxx), .in_vyy(sc_vyy), .in_vxy(sc_vxy), .in_vxy_neg(sc_vneg), .in_dd(sc_dd),
+    .out_valid(sfit_valid), .out_kind(sfit_kind), .out_par(sfit_par),
+    .out_xmin(sfit_x0), .out_xmax(sfit_x1), .out_ymin(sfit_y0), .out_ymax(sfit_y1), .drop_count(sfit_drop));
+shape_track #(.NT(3), .NP(3)) u_shape_trk (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .frame_start(sp_fs),
+    .det_valid(sfit_valid), .det_class(sfit_kind), .det_xmin(sfit_x0), .det_xmax(sfit_x1),
+    .det_ymin(sfit_y0), .det_ymax(sfit_y1), .det_par(sfit_par),
+    .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1),
+    .trk_ymin(st_y0), .trk_ymax(st_y1), .trk_par(st_par));
+// Chinese class names above each shape (no bounding box: the fitted outline replaces it)
+wire        nm_valid, nm_hs, nm_vs;  wire [47:0] nm_rgb2;
+shape_overlay_2px #(.NT(3), .PAIR_COUNT(960)) u_shape_ovl (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on), .show_box(1'b0),
     .in_valid(split_valid), .in_hs(split_hs), .in_vs(split_vs), .in_rgb2(split_rgb2),
     .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1), .trk_ymin(st_y0), .trk_ymax(st_y1),
+    .out_valid(nm_valid), .out_hs(nm_hs), .out_vs(nm_vs), .out_rgb2(nm_rgb2));
+shape_fit_draw_2px #(.NT(3)) u_shape_fit_draw (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .enable(ui_shape_on),
+    .in_valid(nm_valid), .in_hs(nm_hs), .in_vs(nm_vs), .in_rgb2(nm_rgb2),
+    .trk_vis(st_vis), .trk_cls(st_cls), .trk_xmin(st_x0), .trk_xmax(st_x1), .trk_ymin(st_y0), .trk_ymax(st_y1), .trk_par(st_par),
     .out_valid(shp_valid), .out_hs(shp_hs), .out_vs(shp_vs), .out_rgb2(shp_rgb2));
+
+// ---- frame-rate meter: camera frames (toggle generated in the camera pixel-clock domain) and HDMI output frames ----
+reg cam_vs_d = 1'b0, cam_tog = 1'b0;
+always @(posedge i_mipi_rx_pclk) begin
+    cam_vs_d <= w_mipi_rx_vs;
+    if (w_mipi_rx_vs && !cam_vs_d) cam_tog <= ~cam_tog;
+end
+wire [6:0] fps_out_v, fps_cam_v;
+fps_meter #(.CLK_HZ(74250000)) u_fps_meter (.clk(vid_clk_dvi2), .rst_n(vid_rst_n), .vs_out(disp_vs), .cam_tog(cam_tog),
+    .fps_out(fps_out_v), .fps_cam(fps_cam_v));
 
 wire        bar_valid, bar_hs, bar_vs;
 wire [47:0] bar_rgb2;
 menu_bar_2px #(.BAR_Y(960)) u_menu_bar (.clk(vid_clk_dvi2), .rst_n(vid_rst_n),
     .in_valid(shp_valid), .in_hs(shp_hs), .in_vs(shp_vs), .in_rgb2(shp_rgb2),
     .sel(ui_sel), .src_mode(ui_src_mode), .thr_idx(ui_thr_idx), .flash(ui_flash),
-    .shape_on(ui_shape_on), .cmp_mode(ui_algo == 2'd2), .algo(ui_algo), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
+    .shape_on(ui_shape_on), .cmp_mode(ui_algo == 2'd2), .fps_on(ui_fps_on), .fps_out(fps_out_v), .fps_cam(fps_cam_v), .algo(ui_algo), .disp_mode(ui_disp_mode), .saved_valid(saved_valid_sync),
     .out_valid(bar_valid), .out_hs(bar_hs), .out_vs(bar_vs), .out_rgb2(bar_rgb2));
 
 mode_overlay_2px #(

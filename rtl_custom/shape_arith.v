@@ -57,3 +57,34 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 endmodule
+
+// 64 -> 32 unsigned integer square root (floor), digit-by-digit, 32 clocks.
+module seq_sqrt (
+    input  wire        clk, rst_n, start,
+    input  wire [63:0] x,
+    output reg  [31:0] root,
+    output reg         done
+);
+reg [63:0] num;
+reg [33:0] rem;
+reg [31:0] r;
+reg [5:0]  cnt;
+reg        busy;
+wire [33:0] rem_n = {rem[31:0], num[63:62]};
+wire [33:0] trial = {r, 2'b01};
+wire        ge    = (rem_n >= trial);
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin num<=0; rem<=0; r<=0; cnt<=0; busy<=0; done<=0; root<=0; end
+    else begin
+        done <= 1'b0;
+        if (start && !busy) begin num<=x; rem<=34'd0; r<=32'd0; cnt<=6'd0; busy<=1'b1; end
+        else if (busy) begin
+            rem <= ge ? (rem_n - trial) : rem_n;
+            r   <= {r[30:0], ge};
+            num <= {num[61:0], 2'b00};
+            cnt <= cnt + 1'b1;
+            if (cnt == 6'd31) begin busy<=1'b0; done<=1'b1; root <= {r[30:0], ge}; end
+        end
+    end
+end
+endmodule

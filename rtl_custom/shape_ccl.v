@@ -20,7 +20,7 @@ module shape_ccl #(
     input  wire         clk, rst_n,
     input  wire         p_valid, p_bit, p_frame_start,
     output reg          fin_valid,
-    output reg  [195:0] fin_rec,
+    output reg  [331:0] fin_rec,
     output reg          frame_done,
     output reg  [15:0]  ovf_count, overrun_count
 );
@@ -28,9 +28,45 @@ localparam NL = 32;
 localparam [4:0] OVF = 5'd31;
 
 // ---------------- record field positions ----------------
+// bits [195:0]  : moments, bbox, touch flag (see shape_classify.v)
+// bits [331:196]: eight directional extreme cells, 17 bits each = {y[8:0], x[7:0]}, in angular order
+//                 k0 (1,0) k1 (1,1) k2 (0,1) k3 (-1,1) k4 (-1,0) k5 (-1,-1) k6 (0,-1) k7 (1,-1)   (image y points down)
+//                 extreme of  p = dx*x + dy*y ;  ties keep the first cell in raster order
 localparam integer P_M=0, W_M=16, P_SX=16, W_SX=24, P_SY=40, W_SY=25, P_SXX=65, W_SXX=32, P_SYY=97, W_SYY=32,
                    P_SXY=129, W_SXY=32, P_XMIN=161, P_XMAX=169, P_YMIN=177, P_YMAX=186, P_T=195;
-localparam [195:0] REC_INIT = ({188'd0, 8'd255} << P_XMIN) | ({187'd0, 9'd511} << P_YMIN);
+localparam integer P_E = 196;
+function [16:0] ext_init;
+    input integer k;
+    reg [7:0] x0; reg [8:0] y0;
+    begin
+        // minimal p for the direction, so any real cell replaces it
+        x0 = (k==3 || k==4 || k==5) ? 8'd255 : 8'd0;
+        y0 = (k==5 || k==6 || k==7) ? 9'd511 : 9'd0;
+        ext_init = {y0, x0};
+    end
+endfunction
+function signed [11:0] ext_p;                  // projection of cell (x,y) on direction k
+    input integer k; input [7:0] x; input [8:0] y;
+    reg signed [11:0] xs, ys;
+    begin
+        xs = $signed({4'd0, x}); ys = $signed({3'd0, y});
+        case (k)
+        0: ext_p = xs;          1: ext_p = xs + ys;   2: ext_p = ys;          3: ext_p = ys - xs;
+        4: ext_p = -xs;         5: ext_p = -xs - ys;  6: ext_p = -ys;         default: ext_p = xs - ys;
+        endcase
+    end
+endfunction
+function [331:0] rec_init;
+    input dummy;
+    integer k; reg [331:0] r;
+    begin
+        r = 332'd0;
+        r[P_XMIN +: 8] = 8'd255; r[P_YMIN +: 9] = 9'd511;
+        for (k = 0; k < 8; k = k + 1) r[P_E + 17*k +: 17] = ext_init(k);
+        rec_init = r;
+    end
+endfunction
+localparam [331:0] REC_INIT = rec_init(1'b0);
 
 // ---------------- pooled row collection ----------------
 reg [MAP_W-1:0] rowbuf, r0, r1, r2;
@@ -57,10 +93,10 @@ reg  [7:0]  x;
 simple_dual_port_ram #(.DATA_WIDTH(5), .ADDR_WIDTH(8), .OUTPUT_REG("FALSE")) u_lp (
     .wdata(lp_wdata), .waddr(lp_waddr), .raddr(x), .we(lp_we), .wclk(clk), .re(1'b1), .rclk(clk), .rdata(lp_q));
 
-reg         st_we;  reg [4:0] st_waddr;  reg [195:0] st_wdata;
+reg         st_we;  reg [4:0] st_waddr;  reg [331:0] st_wdata;
 reg  [4:0]  st_ra;
-wire [195:0] st_q;
-simple_dual_port_ram #(.DATA_WIDTH(196), .ADDR_WIDTH(5), .OUTPUT_REG("FALSE")) u_st (
+wire [331:0] st_q;
+simple_dual_port_ram #(.DATA_WIDTH(332), .ADDR_WIDTH(5), .OUTPUT_REG("FALSE")) u_st (
     .wdata(st_wdata), .waddr(st_waddr), .raddr(st_ra), .we(st_we), .wclk(clk), .re(1'b1), .rclk(clk), .rdata(st_q));
 
 // ---------------- row engine ----------------
@@ -76,10 +112,10 @@ reg [7:0]  run_cnt, run_xmin, run_xmax;
 reg [15:0] run_sx;
 reg [23:0] run_sxx;
 reg        run_touch;
-reg [195:0] sa;
+reg [331:0] sa;
 reg [15:0] p_sy;  reg [24:0] p_syy, p_sxy;
 reg [7:0]  clr_cnt;
-reg [195:0] er_rec;
+reg [331:0] er_rec;
 reg [7:0] bw;  reg [8:0] bh;  reg [16:0] bprod;
 
 wire bg = ~drow[0];
@@ -95,10 +131,11 @@ end
 wire [4:0] mrg_a = (rn < run_lab) ? rn : run_lab;
 wire [4:0] mrg_b = (rn < run_lab) ? run_lab : rn;
 
-function [195:0] merge_rec;
-    input [195:0] a, b;
+function [331:0] merge_rec;
+    input [331:0] a, b;
+    integer k; reg [7:0] ax, bx; reg [8:0] ay, by;
     begin
-        merge_rec = 196'd0;
+        merge_rec = 332'd0;
         merge_rec[P_M   +: W_M  ] = a[P_M   +: W_M  ] + b[P_M   +: W_M  ];
         merge_rec[P_SX  +: W_SX ] = a[P_SX  +: W_SX ] + b[P_SX  +: W_SX ];
         merge_rec[P_SY  +: W_SY ] = a[P_SY  +: W_SY ] + b[P_SY  +: W_SY ];
@@ -110,11 +147,17 @@ function [195:0] merge_rec;
         merge_rec[P_YMIN +: 9] = (a[P_YMIN +: 9] < b[P_YMIN +: 9]) ? a[P_YMIN +: 9] : b[P_YMIN +: 9];
         merge_rec[P_YMAX +: 9] = (a[P_YMAX +: 9] > b[P_YMAX +: 9]) ? a[P_YMAX +: 9] : b[P_YMAX +: 9];
         merge_rec[P_T] = a[P_T] | b[P_T];
+        for (k = 0; k < 8; k = k + 1) begin
+            ax = a[P_E + 17*k +: 8]; ay = a[P_E + 17*k + 8 +: 9];
+            bx = b[P_E + 17*k +: 8]; by = b[P_E + 17*k + 8 +: 9];
+            if (ext_p(k, bx, by) > ext_p(k, ax, ay)) merge_rec[P_E + 17*k +: 17] = {by, bx};
+            else                                       merge_rec[P_E + 17*k +: 17] = {ay, ax};
+        end
     end
 endfunction
 
-function [195:0] flush_rec;
-    input [195:0] a;
+function [331:0] flush_rec;
+    input [331:0] a;
     input [7:0] cnt, xmn, xmx;
     input [15:0] sxr;
     input [23:0] sxxr;
@@ -122,8 +165,9 @@ function [195:0] flush_rec;
     input [24:0] psyy, psxy;
     input [8:0] yy;
     input touch;
+    integer k; reg [7:0] cx, ox; reg [8:0] oy;
     begin
-        flush_rec = 196'd0;
+        flush_rec = 332'd0;
         flush_rec[P_M   +: W_M  ] = a[P_M   +: W_M  ] + cnt;
         flush_rec[P_SX  +: W_SX ] = a[P_SX  +: W_SX ] + sxr;
         flush_rec[P_SY  +: W_SY ] = a[P_SY  +: W_SY ] + psy;
@@ -135,6 +179,12 @@ function [195:0] flush_rec;
         flush_rec[P_YMIN +: 9] = (a[P_YMIN +: 9] < yy) ? a[P_YMIN +: 9] : yy;
         flush_rec[P_YMAX +: 9] = (a[P_YMAX +: 9] > yy) ? a[P_YMAX +: 9] : yy;
         flush_rec[P_T] = a[P_T] | touch;
+        for (k = 0; k < 8; k = k + 1) begin
+            cx = (k==0 || k==1 || k==7) ? xmx : xmn;                 // dx > 0 -> right end of the run, else left end
+            ox = a[P_E + 17*k +: 8]; oy = a[P_E + 17*k + 8 +: 9];
+            if (ext_p(k, cx, yy) > ext_p(k, ox, oy)) flush_rec[P_E + 17*k +: 17] = {yy, cx};
+            else                                      flush_rec[P_E + 17*k +: 17] = {oy, ox};
+        end
     end
 endfunction
 

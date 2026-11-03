@@ -24,23 +24,28 @@ module shape_classify #(
 )(
     input  wire         clk, rst_n,
     input  wire         in_valid,
-    input  wire [195:0] in_rec,
+    input  wire [331:0] in_rec,
     output reg          out_valid,
     output reg  [2:0]   out_class,
     output reg  [7:0]   out_xmin, out_xmax,
     output reg  [8:0]   out_ymin, out_ymax,
     output reg  [31:0]  out_i1,
     output reg          out_elong,
-    output reg  [31:0]  drop_count
+    output reg  [31:0]  drop_count,
+    // geometry passed on to shape_fit (variances are cells^2 * 256)
+    output reg  [331:0] out_rec,
+    output reg  [31:0]  out_vxx, out_vyy, out_vxy,
+    output reg          out_vxy_neg,
+    output reg  [63:0]  out_dd
 );
-// ---- 4-entry input FIFO (registers) ----
-reg [195:0] fifo [0:3];
-reg [2:0] wp, rp;
+// ---- 2-entry input FIFO (registers) ----
+reg [331:0] fifo [0:1];
+reg [1:0] wp, rp;
 wire fifo_empty = (wp == rp);
-wire fifo_full  = (wp[1:0] == rp[1:0]) && (wp[2] != rp[2]);
+wire fifo_full  = (wp[0] == rp[0]) && (wp[1] != rp[1]);
 
 // ---- working registers ----
-reg [195:0] rec;
+reg [331:0] rec;
 wire [15:0] M   = rec[15:0];
 wire [23:0] sx  = rec[39:16];
 wire [24:0] sy  = rec[64:40];
@@ -50,6 +55,7 @@ wire [31:0] sxy = rec[160:129];
 reg [31:0] mm;
 reg [63:0] t1;
 reg [63:0] cxx, cyy, cxy_abs;
+reg cxy_neg;
 reg [31:0] vxx, vyy, vxy;
 reg [63:0] m1, m2, det, tt, i1;
 
@@ -78,15 +84,16 @@ always @(posedge clk or negedge rst_n) begin
         div_num<=0; div_den<=1; out_valid<=0; out_class<=0; out_xmin<=0; out_xmax<=0; out_ymin<=0; out_ymax<=0;
         out_i1<=0; out_elong<=0; drop_count<=0; mm<=0; t1<=0; cxx<=0; cyy<=0; cxy_abs<=0;
         vxx<=0; vyy<=0; vxy<=0; m1<=0; m2<=0; det<=0; tt<=0; i1<=0;
+        out_rec<=0; out_vxx<=0; out_vyy<=0; out_vxy<=0; out_vxy_neg<=0; out_dd<=0; cxy_neg<=0;
     end else begin
         out_valid <= 1'b0; mul_start <= 1'b0; div_start <= 1'b0;
         // FIFO write
         if (in_valid) begin
             if (fifo_full) drop_count <= drop_count + 1'b1;
-            else begin fifo[wp[1:0]] <= in_rec; wp <= wp + 1'b1; end
+            else begin fifo[wp[0]] <= in_rec; wp <= wp + 1'b1; end
         end
         case (st)
-        S_IDLE: if (!fifo_empty) begin rec <= fifo[rp[1:0]]; rp <= rp + 1'b1; st <= S_MM; issued <= 0; end
+        S_IDLE: if (!fifo_empty) begin rec <= fifo[rp[0]]; rp <= rp + 1'b1; st <= S_MM; issued <= 0; end
         // mm = M*M
         S_MM: if (!issued) begin mul_a<={16'd0,M}; mul_b<={16'd0,M}; mul_start<=1; issued<=1; end
               else if (mul_done) begin mm <= mul_p[31:0]; st<=S_T1; issued<=0; end
@@ -103,6 +110,7 @@ always @(posedge clk or negedge rst_n) begin
         S_T6: if (!issued) begin mul_a<={8'd0,sx}; mul_b<={7'd0,sy}; mul_start<=1; issued<=1; end
               else if (mul_done) begin
                   cxy_abs <= (t1 >= mul_p) ? (t1 - mul_p) : (mul_p - t1);
+                  cxy_neg <= (t1 < mul_p);
                   st<=S_D1; issued<=0; end
         S_D1: if (!issued) begin div_num<={cxx[55:0],8'd0}; div_den<=mm; div_start<=1; issued<=1; end
               else if (div_done) begin vxx <= div_q[31:0]; st<=S_D2; issued<=0; end
@@ -124,6 +132,7 @@ always @(posedge clk or negedge rst_n) begin
               else if (mul_done) begin m1 <= mul_p; st<=S_FIN; issued<=0; end
         S_FIN: begin
             out_i1   <= i1_32;
+            out_rec <= rec; out_vxx <= vxx; out_vyy <= vyy; out_vxy <= vxy; out_vxy_neg <= cxy_neg; out_dd <= dd;
             out_elong<= elong;
             out_xmin <= rec[168:161]; out_xmax <= rec[176:169]; out_ymin <= rec[185:177]; out_ymax <= rec[194:186];
             if (i1_32 >= I_CIRC_LO && i1_32 <= I_CIRC_HI)       out_class <= elong ? 3'd2 : 3'd1;

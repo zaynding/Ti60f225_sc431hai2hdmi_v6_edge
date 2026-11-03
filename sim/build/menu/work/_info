@@ -8,13 +8,36 @@ z2
 !i10f 100
 cModel Technology
 Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
-vkey_sl
+vfps_meter
 Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
-Z2 !s110 1793663597
+Z2 !s110 1793689863
+!i10b 1
+!s100 S4YR`IK1;h[hz9R8TYog:0
+I:mMUPZ[M?X_OLA04aTk0<1
+Z3 V`JN@9S9cnhjKRR_L]QIcM3
+!s105 fps_meter_v_unit
+S1
+R0
+w1793689851
+8rtl_custom/fps_meter.v
+Frtl_custom/fps_meter.v
+L0 10
+Z4 OV;L;10.3c;59
+r1
+!s85 0
+31
+Z5 !s108 1793689863.508000
+Z6 !s107 sim/tb_fps_meter.sv|rtl_custom/fps_meter.v|
+Z7 !s90 -sv|-work|sim/build/menu/work|rtl_custom/fps_meter.v|sim/tb_fps_meter.sv|
+!i113 1
+Z8 o-sv -work sim/build/menu/work
+vkey_sl
+R1
+Z9 !s110 1793689931
 !i10b 1
 !s100 jK]n_L02zYNl2Iiokn6zC0
 I=@JMMizglT>hGkbOVClfD0
-Z3 V`JN@9S9cnhjKRR_L]QIcM3
+R3
 !s105 key_sl_v_unit
 S1
 R0
@@ -22,36 +45,59 @@ w1793642670
 8rtl_custom/key_sl.v
 Frtl_custom/key_sl.v
 L0 5
-Z4 OV;L;10.3c;59
-r1
-!s85 0
-31
-Z5 !s108 1793663597.594000
-Z6 !s107 sim/tb_ui_menu.sv|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|
-Z7 !s90 -sv|-work|sim/build/menu/work|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|sim/tb_ui_menu.sv|
-!i113 1
-Z8 o-sv -work sim/build/menu/work
-vmenu_bar_2px
-R1
-Z9 !s110 1793652882
-!i10b 1
-!s100 PPQ4ea9]MT7jo_:>cI99X0
-I1hiDYB:c2WdMAE3H8M>hB2
-R3
-!s105 menu_bar_2px_v_unit
-S1
-R0
-w1793652834
-8rtl_custom/menu_bar_2px.v
-Frtl_custom/menu_bar_2px.v
-L0 7
 R4
 r1
 !s85 0
 31
-Z10 !s108 1793652882.869000
-Z11 !s107 sim/tb_ui_menu.sv|sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_font_rom.v|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|rtl/simple_dual_port_ram.v|
-Z12 !s90 -sv|-work|sim/build/menu/work|rtl/simple_dual_port_ram.v|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|rtl_custom/menu_font_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|sim/tb_ui_menu.sv|
+Z10 !s108 1793689931.658000
+Z11 !s107 sim/tb_ui_menu.sv|sim/tb_menu_bar.sv|rtl_custom/menu_bar_2px.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_digit_rom.v|rtl_custom/menu_font_rom.v|rtl_custom/ui_ctrl.v|rtl_custom/key_sl.v|rtl/simple_dual_port_ram.v|
+Z12 !s90 -sv|-work|sim/build/menu/work|rtl/simple_dual_port_ram.v|rtl_custom/key_sl.v|rtl_custom/ui_ctrl.v|rtl_custom/menu_font_rom.v|rtl_custom/menu_digit_rom.v|rtl_custom/menu_text_rom.v|rtl_custom/menu_bar_2px.v|sim/tb_menu_bar.sv|sim/tb_ui_menu.sv|
+!i113 1
+R8
+vmenu_bar_2px
+R1
+R9
+!i10b 1
+!s100 1IK7hTH;N9RcOV>DJSQ3U3
+IYh`=]AHmc]ImmPf`TL:jL2
+R3
+!s105 menu_bar_2px_v_unit
+S1
+R0
+Z13 w1793689931
+8rtl_custom/menu_bar_2px.v
+Frtl_custom/menu_bar_2px.v
+L0 8
+R4
+r1
+!s85 0
+31
+R10
+R11
+R12
+!i113 1
+R8
+vmenu_digit_rom
+R1
+R9
+!i10b 1
+!s100 iY2_R>fkH;1T=LLiU_SMU1
+I1bP]@[S=?1<eiLS2JRX3^2
+R3
+!s105 menu_digit_rom_v_unit
+S1
+R0
+Z14 w1793689895
+8rtl_custom/menu_digit_rom.v
+Frtl_custom/menu_digit_rom.v
+L0 3
+R4
+r1
+!s85 0
+31
+R10
+R11
+R12
 !i113 1
 R8
 vmenu_font_rom
@@ -64,7 +110,7 @@ R3
 !s105 menu_font_rom_v_unit
 S1
 R0
-Z13 w1793652835
+R14
 8rtl_custom/menu_font_rom.v
 Frtl_custom/menu_font_rom.v
 L0 4
@@ -81,13 +127,13 @@ vmenu_text_rom
 R1
 R9
 !i10b 1
-!s100 i_>9OS4c_KWER4nbV;jiL1
-IzbM=zWmm7`21Wz0P@<=6D3
+!s100 b28do_5zhAe31>h9MmWgW0
+IG1dazoH<_kmQWHz@P7lh?0
 R3
 !s105 menu_text_rom_v_unit
 S1
 R0
-R13
+R14
 8rtl_custom/menu_text_rom.v
 Frtl_custom/menu_text_rom.v
 L0 4
@@ -123,17 +169,40 @@ R11
 R12
 !i113 1
 R8
+vtb_fps_meter
+R1
+R2
+!i10b 1
+!s100 F^P9d44cTMU7[o_O?425E2
+IYieHoz=kYoo@XR6ZkZ0ME3
+R3
+!s105 tb_fps_meter_sv_unit
+S1
+R0
+w1793689863
+8sim/tb_fps_meter.sv
+Fsim/tb_fps_meter.sv
+L0 2
+R4
+r1
+!s85 0
+31
+R5
+R6
+R7
+!i113 1
+R8
 vtb_menu_bar
 R1
 R9
 !i10b 1
-!s100 0V[i_m]@NPZRfm:JU[`no0
-IfS_c@ME`RoP:>fjLz<V181
+!s100 [P^aYlnaF]Mb[b^aa9M@60
+I9XH9K]SbMjYeoj7^5f]io2
 R3
 !s105 tb_menu_bar_sv_unit
 S1
 R0
-w1793652882
+R13
 8sim/tb_menu_bar.sv
 Fsim/tb_menu_bar.sv
 L0 2
@@ -148,15 +217,15 @@ R12
 R8
 vtb_ui_menu
 R1
-R2
+!s110 1793689955
 !i10b 1
-!s100 haE9TMLU422YADAE:@]iP1
-I[SMCmF?B:Je:mk0[zSZF?0
+!s100 P0HcG;7g[Mmj;l1Ha5G>m3
+I@@Zj>:HK09FTEbc584=Xh3
 R3
 !s105 tb_ui_menu_sv_unit
 S1
 R0
-Z14 w1793663597
+w1793689955
 8sim/tb_ui_menu.sv
 Fsim/tb_ui_menu.sv
 L0 3
@@ -164,22 +233,22 @@ R4
 r1
 !s85 0
 31
-R5
-R6
-R7
+!s108 1793689955.773000
+!s107 sim/tb_ui_menu.sv|
+!s90 -sv|-work|sim/build/menu/work|sim/tb_ui_menu.sv|
 !i113 1
 R8
 vui_ctrl
 R1
-R2
+R9
 !i10b 1
-!s100 f7W>3D7O:A;[jiJmdZZc42
-ILW=RQ=m@UdF_7[VH:T4DK1
+!s100 2[6PSF>Y6D?Zca`dTjz7S0
+IKFzDci`gM7hbbTQ0_gY1C3
 R3
 !s105 ui_ctrl_v_unit
 S1
 R0
-R14
+w1793689876
 8rtl_custom/ui_ctrl.v
 Frtl_custom/ui_ctrl.v
 L0 12
@@ -187,8 +256,8 @@ R4
 r1
 !s85 0
 31
-R5
-R6
-R7
+R10
+R11
+R12
 !i113 1
 R8

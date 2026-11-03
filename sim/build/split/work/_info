@@ -10,15 +10,15 @@ cModel Technology
 Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
 vdisplay_split_2px
 Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
-Z2 !s110 1793652931
+Z2 !s110 1793690381
 !i10b 1
-!s100 U_^Bb1bWaS;eCUGl>m_f71
-I2e]>H=A5BLm4jAT4IVAk00
+!s100 38^RP>VWfWXUSoj:@]RoN3
+I^hjmg?8IhXYfcOio@;[g?2
 Z3 V`JN@9S9cnhjKRR_L]QIcM3
 !s105 display_split_2px_v_unit
 S1
 R0
-w1793652852
+w1793690368
 8rtl_custom/display_split_2px.v
 Frtl_custom/display_split_2px.v
 L0 14
@@ -26,7 +26,7 @@ Z4 OV;L;10.3c;59
 r1
 !s85 0
 31
-Z5 !s108 1793652931.244000
+Z5 !s108 1793690381.404000
 Z6 !s107 sim/tb_display_split_2px.v|rtl_custom/display_split_2px.v|
 Z7 !s90 -sv|-work|sim/build/split/work|rtl_custom/display_split_2px.v|sim/tb_display_split_2px.v|
 !i113 1
@@ -35,13 +35,13 @@ vtb_display_split_2px
 R1
 R2
 !i10b 1
-!s100 2X]f0_C[Ah?_iQ:]:BX_M0
-I7eiV^P7S`VC@UjP50^Dk`0
+!s100 TCmEX<F_V6MmzK1o>2:Eh0
+I<dT7Hl<2fl4[O6AKAZl9k2
 R3
 !s105 tb_display_split_2px_v_unit
 S1
 R0
-w1793652930
+w1793686893
 8sim/tb_display_split_2px.v
 Fsim/tb_display_split_2px.v
 L0 3

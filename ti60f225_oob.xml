@@ -88,6 +88,8 @@
         <efx:design_file name="rtl_custom/menu_font_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/menu_text_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/menu_bar_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/fps_meter.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/menu_digit_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_arith.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_pool.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_ccl.v" version="default" library="default" />
@@ -95,6 +97,8 @@
         <efx:design_file name="rtl_custom/shape_track.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_font_rom.v" version="default" library="default" />
         <efx:design_file name="rtl_custom/shape_overlay_2px.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/shape_fit.v" version="default" library="default" />
+        <efx:design_file name="rtl_custom/shape_fit_draw_2px.v" version="default" library="default" />
         <efx:top_vhdl_arch name="" />
         <efx:msg_config name="" />
         <efx:partition_definitions name="" />

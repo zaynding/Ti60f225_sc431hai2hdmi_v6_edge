@@ -1,12 +1,11 @@
-# vsim -c -lib sim/build/menu/work tb_ui_menu -do "run -all; quit -f" 
-# Start time: 08:53:18 on Nov 03,2026
+# vsim -c -lib sim/build/split/work tb_display_split_2px -do "run -all; quit -f" 
+# Start time: 16:19:42 on Nov 03,2026
 # Loading sv_std.std
-# Loading sim/build/menu/work.tb_ui_menu
-# Loading sim/build/menu/work.ui_ctrl
-# Loading sim/build/menu/work.key_sl
+# Loading sim/build/split/work.tb_display_split_2px
+# Loading sim/build/split/work.display_split_2px
 # run -all
-# PASS: key short/long press, thresholds, freeze, menu select, item change, capture, slot skip, rotation
-# ** Note: $finish    : sim/tb_ui_menu.sv(50)
-#    Time: 117306280 ps  Iteration: 1  Instance: /tb_ui_menu
-# End time: 08:53:18 on Nov 03,2026, Elapsed time: 0:00:00
+# PASS: display_split_2px test passed
+# ** Note: $finish    : sim/tb_display_split_2px.v(194)
+#    Time: 2745 ns  Iteration: 1  Instance: /tb_display_split_2px
+# End time: 16:19:42 on Nov 03,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0

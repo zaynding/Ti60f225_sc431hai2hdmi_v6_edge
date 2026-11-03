@@ -22,6 +22,11 @@ module display_split_2px #(
     input  wire        rst_n,
 
     input  wire        show_red, show_color, show_edge,
+    // fitted-outline mode: raw edge pixels inside the boxes of confirmed shapes are removed (the fitted line is drawn instead)
+    input  wire        sup_en,
+    input  wire [2:0]  sup_vis,
+    input  wire [23:0] sup_xmin, sup_xmax,       // 8 bit per track, pooled cells
+    input  wire [26:0] sup_ymin, sup_ymax,       // 9 bit per track
     input  wire        cmp_mode,                 // 1: left panel = raw Sobel edges, right panel = main (Canny) edges
     input  wire        s_edge0, s_edge1,         // raw Sobel edges, aligned with edge0/edge1
     input  wire        src_valid,
@@ -173,6 +178,29 @@ module display_split_2px #(
     reg [10:0]   pipe_line;
     reg [1:0]    pipe_edge;
 
+    // suppression boxes in pixels (4 px per cell, 24 px margin around the hole box)
+    reg [11:0] sxl [0:2], sxh [0:2], syl [0:2], syh [0:2];
+    integer sk;
+    always @(posedge clk) begin
+        for (sk = 0; sk < 3; sk = sk + 1) begin
+            sxl[sk] <= ({2'b0, sup_xmin[8*sk +: 8], 2'b0} > 12'd80) ? ({2'b0, sup_xmin[8*sk +: 8], 2'b0} - 12'd80) : 12'd0;
+            sxh[sk] <= {2'b0, sup_xmax[8*sk +: 8], 2'b0} + 12'd84;
+            syl[sk] <= ({1'b0, sup_ymin[9*sk +: 9], 2'b0} > 12'd80) ? ({1'b0, sup_ymin[9*sk +: 9], 2'b0} - 12'd80) : 12'd0;
+            syh[sk] <= {1'b0, sup_ymax[9*sk +: 9], 2'b0} + 12'd84;
+        end
+    end
+    wire [11:0] px_dbl   = {1'b0, pipe_x, 1'b0};
+    wire [11:0] px_pair0 = (pipe_x < CROP_PAIRS) ? px_dbl : (px_dbl - (2 * CROP_PAIRS));
+    wire [11:0] px_pair1 = px_pair0 + 12'd1;
+    reg sup0, sup1;
+    always @* begin
+        sup0 = 1'b0; sup1 = 1'b0;
+        for (sk = 0; sk < 3; sk = sk + 1) if (sup_en && sup_vis[sk]) begin
+            if (px_pair0 >= sxl[sk] && px_pair0 <= sxh[sk] && pipe_line >= syl[sk] && pipe_line <= syh[sk]) sup0 = 1'b1;
+            if (px_pair1 >= sxl[sk] && px_pair1 <= sxh[sk] && pipe_line >= syl[sk] && pipe_line <= syh[sk]) sup1 = 1'b1;
+        end
+    end
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             x_in      <= {PW{1'b0}};
@@ -217,16 +245,16 @@ module display_split_2px #(
                         ((pipe_line != 11'd0) && emask_q[1] && show_edge) ? 24'hFFFFFF : 24'h000000,
                         ((pipe_line != 11'd0) && emask_q[0] && show_edge) ? 24'hFFFFFF : 24'h000000
                     } : {
-                        ((pipe_line != 11'd0) && emask_q[1] && show_red) ?
+                        ((pipe_line != 11'd0) && emask_q[1] && show_red && !sup1) ?
                             24'hFF0000 : (show_color ? cmem_q[47:24] : 24'h202020),
-                        ((pipe_line != 11'd0) && emask_q[0] && show_red) ?
+                        ((pipe_line != 11'd0) && emask_q[0] && show_red && !sup0) ?
                             24'hFF0000 : (show_color ? cmem_q[23:0] : 24'h202020)
                     };
                 end
                 else if (pipe_x < (2 * CROP_PAIRS)) begin
                     out_rgb2 <= {
-                        (pipe_edge[1] && show_edge) ? 24'hFFFFFF : 24'h000000,
-                        (pipe_edge[0] && show_edge) ? 24'hFFFFFF : 24'h000000
+                        (pipe_edge[1] && show_edge && !sup1) ? 24'hFFFFFF : 24'h000000,
+                        (pipe_edge[0] && show_edge && !sup0) ? 24'hFFFFFF : 24'h000000
                     };
                 end
                 else begin

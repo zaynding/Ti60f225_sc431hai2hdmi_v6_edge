@@ -1,0 +1,332 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/WeChatdocument/xwechat_files/wxid_zc3xdg35ncu322_83d0/msg/file/2026-11/Ti60f225_sc431hai2hdmi_v6_edge/Ti60f225_sc431hai2hdmi_v6_edge
+vdisplay_split_2px
+Z1 DXx6 sv_std 3 std 0 22 <EOTafDcUY:cQeO^ICn]m3
+Z2 !s110 1793685429
+!i10b 1
+!s100 QlXPm]PINB6CB`Ndd[V]n1
+I48WNiGG4JGjiJVaZ?J_<01
+Z3 V`JN@9S9cnhjKRR_L]QIcM3
+!s105 display_split_2px_v_unit
+S1
+R0
+w1793685429
+8rtl_custom/display_split_2px.v
+Frtl_custom/display_split_2px.v
+Z4 L0 14
+Z5 OV;L;10.3c;59
+r1
+!s85 0
+31
+Z6 !s108 1793685429.693000
+Z7 !s107 rtl_custom/shape_font_rom.v|rtl_custom/shape_overlay_2px.v|rtl_custom/display_split_2px.v|
+Z8 !s90 -sv|-work|sim/build/shape/work3|rtl_custom/display_split_2px.v|rtl_custom/shape_overlay_2px.v|rtl_custom/shape_font_rom.v|
+!i113 1
+Z9 o-sv -work sim/build/shape/work3
+vseq_div
+R1
+Z10 !s110 1793685247
+!i10b 1
+!s100 _GkVgH1USm3HH=Tm7caMP2
+Idnb`FGF1g5E[mOc@=716E1
+R3
+Z11 !s105 shape_arith_v_unit
+S1
+R0
+Z12 w1793684892
+Z13 8rtl_custom/shape_arith.v
+Z14 Frtl_custom/shape_arith.v
+L0 31
+R5
+r1
+!s85 0
+31
+Z15 !s108 1793685247.746000
+Z16 !s107 sim/tb_shape_fit.sv|rtl_custom/shape_fit.v|rtl_custom/shape_classify.v|rtl_custom/shape_arith.v|rtl/simple_dual_port_ram.v|
+Z17 !s90 -sv|-work|sim/build/shape/work3|rtl/simple_dual_port_ram.v|rtl_custom/shape_arith.v|rtl_custom/shape_classify.v|rtl_custom/shape_fit.v|sim/tb_shape_fit.sv|
+!i113 1
+R9
+vseq_mul
+R1
+R10
+!i10b 1
+!s100 BmmUnBC:XiRJnVb[H746N2
+Ij9G<C>9kHO>IY6ln:Q=mV3
+R3
+R11
+S1
+R0
+R12
+R13
+R14
+L0 5
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9
+vseq_sqrt
+R1
+R10
+!i10b 1
+!s100 gnFL3cMj2[9;AFXa3NmlB0
+I81;E`5li78c=oQRhYX=?H0
+R3
+R11
+S1
+R0
+R12
+R13
+R14
+L0 62
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9
+vshape_ccl
+R1
+!s110 1793684858
+!i10b 1
+!s100 0nS?3X@F^]f=PB_zbh[fh1
+IUk]8BX0l^H9d]QNi6T;3X1
+R3
+!s105 shape_ccl_v_unit
+S1
+R0
+w1793684857
+8rtl_custom/shape_ccl.v
+Frtl_custom/shape_ccl.v
+L0 13
+R5
+r1
+!s85 0
+31
+!s108 1793684858.050000
+!s107 rtl_custom/shape_ccl.v|rtl/simple_dual_port_ram.v|
+!s90 -sv|-work|sim/build/shape/work3|rtl/simple_dual_port_ram.v|rtl_custom/shape_ccl.v|
+!i113 1
+R9
+vshape_classify
+R1
+R10
+!i10b 1
+!s100 _T]Hhf_oDJTXOL?E_=z_>2
+ID6>X2>K182TQ]T:gXTWgz1
+R3
+!s105 shape_classify_v_unit
+S1
+R0
+w1793684873
+8rtl_custom/shape_classify.v
+Frtl_custom/shape_classify.v
+L0 17
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9
+vshape_fit
+R1
+R10
+!i10b 1
+!s100 QeNhKYTEE3bP7Xdh_N@aV1
+IB[LD0H2TbY4<J89MV]7?a3
+R3
+!s105 shape_fit_v_unit
+S1
+R0
+Z18 w1793685247
+8rtl_custom/shape_fit.v
+Frtl_custom/shape_fit.v
+L0 20
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9
+vshape_fit_draw_2px
+R1
+!s110 1793685380
+!i10b 1
+!s100 Ve2>DBLAM94h326CS@4OV2
+Il9bFe7Tk<nVbd@@U:QAe51
+R3
+!s105 shape_fit_draw_2px_v_unit
+S1
+R0
+w1793685380
+8rtl_custom/shape_fit_draw_2px.v
+Frtl_custom/shape_fit_draw_2px.v
+R4
+R5
+r1
+!s85 0
+31
+!s108 1793685380.953000
+!s107 rtl_custom/shape_fit_draw_2px.v|
+!s90 -sv|-work|sim/build/shape/work3|rtl_custom/shape_fit_draw_2px.v|
+!i113 1
+R9
+vshape_font_rom
+R1
+R2
+!i10b 1
+!s100 Zz?n9Xm5R1ko0DVW=jaQ50
+IU=Qk[jE>387m=eIXDbLBl3
+R3
+!s105 shape_font_rom_v_unit
+S1
+R0
+w1793641931
+8rtl_custom/shape_font_rom.v
+Frtl_custom/shape_font_rom.v
+L0 4
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!i113 1
+R9
+vshape_overlay_2px
+R1
+R2
+!i10b 1
+!s100 F:DbiSTcn[@1iJ^W]:ZU11
+IzXeJ>K[die2[Z240L3g_a2
+R3
+!s105 shape_overlay_2px_v_unit
+S1
+R0
+w1793685417
+8rtl_custom/shape_overlay_2px.v
+Frtl_custom/shape_overlay_2px.v
+L0 12
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!i113 1
+R9
+vshape_track
+R1
+!s110 1793685294
+!i10b 1
+!s100 3DT_9K?bYTKA=D68^O1>S2
+IBZRhk^U^d^36OO`<4AIC]3
+R3
+!s105 shape_track_v_unit
+S1
+R0
+w1793685294
+8rtl_custom/shape_track.v
+Frtl_custom/shape_track.v
+L0 15
+R5
+r1
+!s85 0
+31
+!s108 1793685294.276000
+!s107 rtl_custom/shape_track.v|
+!s90 -sv|-work|sim/build/shape/work3|rtl_custom/shape_track.v|
+!i113 1
+R9
+vsimple_dual_port_ram
+R1
+R10
+!i10b 1
+!s100 OHe`Q9JO;oR02Z>B]J5V`1
+IhR8gHQ?[U?3W:>Gfn<o@m1
+R3
+!s105 simple_dual_port_ram_v_unit
+S1
+R0
+w1778135257
+8rtl/simple_dual_port_ram.v
+Frtl/simple_dual_port_ram.v
+R4
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9
+vtb_seq_sqrt
+R1
+!s110 1793684907
+!i10b 1
+!s100 YgO^jc>dkEH2<TIC3hXzc3
+I_PnTO1oX`3Ca@c3PJUA0Z2
+R3
+!s105 tb_seq_sqrt_sv_unit
+S1
+R0
+w1793684907
+8sim/tb_seq_sqrt.sv
+Fsim/tb_seq_sqrt.sv
+L0 2
+R5
+r1
+!s85 0
+31
+!s108 1793684907.143000
+!s107 sim/tb_seq_sqrt.sv|rtl_custom/shape_arith.v|
+!s90 -sv|-work|sim/build/shape/work3|rtl_custom/shape_arith.v|sim/tb_seq_sqrt.sv|
+!i113 1
+R9
+vtb_shape_fit
+R1
+R10
+!i10b 1
+!s100 V4fY>e]zfLLE76clPDGRP1
+I_>hZLKm>JZnn0H2ngdIg80
+R3
+!s105 tb_shape_fit_sv_unit
+S1
+R0
+R18
+8sim/tb_shape_fit.sv
+Fsim/tb_shape_fit.sv
+L0 3
+R5
+r1
+!s85 0
+31
+R15
+R16
+R17
+!i113 1
+R9

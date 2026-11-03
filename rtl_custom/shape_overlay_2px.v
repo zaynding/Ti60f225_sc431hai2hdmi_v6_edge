@@ -16,6 +16,7 @@ module shape_overlay_2px #(
 )(
     input  wire        clk, rst_n,
     input  wire        enable,
+    input  wire        show_box,                // draw the bounding box (off while the fitted outline is shown)
     input  wire        in_valid, in_hs, in_vs,
     input  wire [47:0] in_rgb2,
     input  wire [NT-1:0]   trk_vis,
@@ -113,7 +114,7 @@ task eval_pixel;
             end
             on_box = (xr >= bx0[k]) && (xr <= bx1[k]) && (y >= by0[k]) && (y <= by1[k]);
             in_in  = (xr >= bx0[k] + 11'd3) && (xr + 11'd3 <= bx1[k]) && (y >= by0[k] + 11'd3) && (y + 11'd3 <= by1[k]);
-            if (on_box && !in_in && !done_b && !done_t) begin done_b = 1; kind = 2'd1; cls = tc[k]; end
+            if (show_box && on_box && !in_in && !done_b && !done_t) begin done_b = 1; kind = 2'd1; cls = tc[k]; end
         end
     end
 endtask
